@@ -4,7 +4,7 @@ from .basesegdataset import BaseSegDataset
 
 
 @DATASETS.register_module()
-class SeafogDataset(BaseSegDataset):
+class SeafogDataset_multiband(BaseSegDataset):
     """SeafogDataset.
 
     In segmentation map annotation for Seafog, 0 is the ignore index.
@@ -12,15 +12,15 @@ class SeafogDataset(BaseSegDataset):
     ``seg_map_suffix`` are both fixed to '.png'.
     """
     METAINFO = dict(
-        classes=('background', 'building', 'road', 'water', 'barren', 'forest',
-                 'agricultural'),
-        palette=[[255, 255, 255], [255, 0, 0], [255, 255, 0], [0, 0, 255],
-                 [159, 129, 183], [0, 255, 0], [255, 195, 128]])
-
+        classes=('land', 'cloud', 'fog', 'cloud_fog', 'ocean'),
+        palette=[[0, 0, 0], [233, 0, 0], [0,230,0], [247,186,11],[227, 227, 2227]],
+        # 类别索引为 255 的像素，在计算损失时会被忽略
+        # label_map = {0:0, 1:1, 2:2, 3:3, 4:4}
+        )
     def __init__(self,
-                 img_suffix='.png',
+                 img_suffix='.npy',
                  seg_map_suffix='.png',
-                 reduce_zero_label=True,
+                 reduce_zero_label=False,
                  **kwargs) -> None:
         super().__init__(
             img_suffix=img_suffix,

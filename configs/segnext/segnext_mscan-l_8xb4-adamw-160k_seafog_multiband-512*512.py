@@ -1,16 +1,15 @@
 _base_ = [
     '../_base_/default_runtime.py', '../_base_/schedules/schedule_160k.py',
-    '../_base_/datasets/seafog.py'
+    '../_base_/datasets/seafog_multiband.py'
 ]
 # model settings
-checkpoint_file = 'https://download.openmmlab.com/mmsegmentation/v0.5/pretrain/segnext/mscan_t_20230227-119e8c9f.pth'  # noqa
+# checkpoint_file = 'https://download.openmmlab.com/mmsegmentation/v0.5/pretrain/segnext/mscan_t_20230227-119e8c9f.pth'  # noqa
 ham_norm_cfg = dict(type='GN', num_groups=32, requires_grad=True)
-crop_size = (512, 512)
 data_preprocessor = dict(
     type='SegDataPreProcessor',
-    mean=[123.675, 116.28, 103.53],
-    std=[58.395, 57.12, 57.375],
-    bgr_to_rgb=True,
+    mean=[123.675, 116.28, 103.53, 115.23, 117.22, 118.22, 113.29, 110.23, 112.92],
+    std=[58.395, 57.12, 57.375, 57.275, 57.485, 57.565, 57.585, 57.590, 58.005],
+    bgr_to_rgb=False,
     pad_val=0,
     seg_pad_val=255,
     size=(512, 512),
@@ -21,24 +20,25 @@ model = dict(
     pretrained=None,
     backbone=dict(
         type='MSCAN',
-        init_cfg=dict(type='Pretrained', checkpoint=checkpoint_file),
-        embed_dims=[32, 64, 160, 256],
+        # init_cfg=dict(type='Pretrained', checkpoint=checkpoint_file),
+        in_channels=9,
+        embed_dims=[64, 128, 320, 512],
         mlp_ratios=[8, 8, 4, 4],
         drop_rate=0.0,
-        drop_path_rate=0.1,
-        depths=[3, 3, 5, 2],
+        drop_path_rate=0.3,
+        depths=[3, 5, 27, 3],
         attention_kernel_sizes=[5, [1, 7], [1, 11], [1, 21]],
         attention_kernel_paddings=[2, [0, 3], [0, 5], [0, 10]],
         act_cfg=dict(type='GELU'),
         norm_cfg=dict(type='BN', requires_grad=True)),
     decode_head=dict(
         type='LightHamHead',
-        in_channels=[64, 160, 256],
+        in_channels=[128, 320, 512],
         in_index=[1, 2, 3],
-        channels=256,
-        ham_channels=256,
+        channels=1024,
+        ham_channels=1024,
         dropout_ratio=0.1,
-        num_classes=150,
+        num_classes=5,
         norm_cfg=ham_norm_cfg,
         align_corners=False,
         loss_decode=dict(
@@ -82,3 +82,6 @@ param_scheduler = [
         by_epoch=False,
     )
 ]
+
+
+

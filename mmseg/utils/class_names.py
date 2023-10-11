@@ -438,6 +438,16 @@ def bdd100k_palette():
             [255, 0, 0], [0, 0, 142], [0, 0, 70], [0, 60, 100], [0, 80, 100],
             [0, 0, 230], [119, 11, 32]]
 
+def seafog_classes():
+
+    return ['land', 'cloud', 'fog', 'cloud_fog', 'ocean']
+
+
+def seafog_palette():
+    """bdd100k palette for external use(same with cityscapes)"""
+    return [[0, 0, 0], [233, 0, 0], [0,230,0], [247,186,11],[255, 255, 255]]
+
+
 
 dataset_aliases = {
     'cityscapes': ['cityscapes'],
@@ -456,7 +466,8 @@ dataset_aliases = {
     'lip': ['LIP', 'lip'],
     'mapillary_v1': ['mapillary_v1'],
     'mapillary_v2': ['mapillary_v2'],
-    'bdd100k': ['bdd100k']
+    'bdd100k': ['bdd100k'],
+    'seafog':['seafog']
 }
 
 

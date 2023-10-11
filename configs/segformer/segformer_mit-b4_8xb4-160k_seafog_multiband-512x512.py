@@ -1,15 +1,27 @@
 _base_ = [
-    '../_base_/models/segformer_mit-b0.py', '../_base_/datasets/seafog.py',
+    '../_base_/models/segformer_mit-b0.py', '../_base_/datasets/seafog_multiband.py',
     '../_base_/default_runtime.py', '../_base_/schedules/schedule_160k.py'
 ]
 crop_size = (512, 512)
-data_preprocessor = dict(size=crop_size)
-checkpoint = 'https://download.openmmlab.com/mmsegmentation/v0.5/pretrain/segformer/mit_b0_20220624-7e0fe6dd.pth'  # noqa
+data_preprocessor = dict(
+    type='SegDataPreProcessor',
+    mean=[123.675, 116.28, 103.53, 115.23, 117.22, 118.22, 113.29, 110.23, 112.92],
+    std=[58.395, 57.12, 57.375, 57.275, 57.485, 57.565, 57.585, 57.590, 58.005],
+    bgr_to_rgb=False,
+    pad_val=0,
+    seg_pad_val=255,
+    size=crop_size)
+# model settings
 model = dict(
     data_preprocessor=data_preprocessor,
-    backbone=dict(init_cfg=dict(type='Pretrained', checkpoint=checkpoint)),
-    decode_head=dict(num_classes=5))
-
+    backbone=dict(
+        # init_cfg=dict(type='Pretrained', checkpoint=checkpoint),
+        in_channels=9,
+        embed_dims=64,
+        num_heads=[1, 2, 5, 8],
+        num_layers=[3, 8, 27, 3]),
+    decode_head=dict(in_channels=[64, 128, 320, 512],
+                    num_classes=5))
 optim_wrapper = dict(
     _delete_=True,
     type='OptimWrapper',
@@ -37,3 +49,5 @@ param_scheduler = [
 train_dataloader = dict(batch_size=4, num_workers=4)
 val_dataloader = dict(batch_size=1, num_workers=4)
 test_dataloader = val_dataloader
+
+

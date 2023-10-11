@@ -6,6 +6,7 @@ __pycache__/
 # C extensions
 *.so
 
+
 # Distribution / packaging
 .Python
 build/
@@ -118,3 +119,4 @@ mmseg/.mim
 
 # Pytorch
 *.pth
+*.zip
