@@ -12,7 +12,7 @@ class SeafogDataset_multiband(BaseSegDataset):
     ``seg_map_suffix`` are both fixed to '.png'.
     """
     METAINFO = dict(
-        classes=('land', 'cloud', 'fog', 'cloud_fog', 'ocean'),
+        classes=('land', 'fog', 'cloud', 'cloud_fog', 'ocean'),# 正确的
         palette=[[0, 0, 0], [233, 0, 0], [0,230,0], [247,186,11],[227, 227, 2227]],
         # 类别索引为 255 的像素，在计算损失时会被忽略
         # label_map = {0:0, 1:1, 2:2, 3:3, 4:4}
