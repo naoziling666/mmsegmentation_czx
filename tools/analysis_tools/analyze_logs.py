@@ -128,3 +128,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+# command : python tools/analysis_tools/analyze_logs.py work_dirs/segnext_mscan-l_2xb8-adamw-focal_loss-160k_seafog_3band-512\*512/20231026-115442/20231026_115446/vis_data/20231026_115446.json --keys loss --out work_dirs/segnext_mscan-l_2xb8-adamw-focal_loss-160k_seafog_3band-512*512/20231026-115442/20231026_115446/vis_data/loss.pdf

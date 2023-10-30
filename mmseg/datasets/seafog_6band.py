@@ -4,7 +4,7 @@ from .basesegdataset import BaseSegDataset
 
 
 @DATASETS.register_module()
-class SeafogDataset_multiband(BaseSegDataset):
+class SeafogDataset_6band(BaseSegDataset):
     """SeafogDataset.
 
     In segmentation map annotation for Seafog, 0 is the ignore index.
@@ -27,7 +27,3 @@ class SeafogDataset_multiband(BaseSegDataset):
             seg_map_suffix=seg_map_suffix,
             reduce_zero_label=reduce_zero_label,
             **kwargs)
-        
-
-
-
