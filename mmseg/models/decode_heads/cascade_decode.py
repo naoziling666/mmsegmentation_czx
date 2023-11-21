@@ -1,15 +1,39 @@
-# Copyright (c) OpenMMLab. All rights reserved.
-# Originally from https://github.com/visual-attention-network/segnext
-# Licensed under the Apache License, Version 2.0 (the "License")
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import sys
+import copy
+import warnings
 from mmcv.cnn import ConvModule
 from mmengine.device import get_device
+from .decode_head import BaseDecodeHead
 
 from mmseg.registry import MODELS
-from ..utils import resize
-from .decode_head import BaseDecodeHead
+
+
+def resize(input,
+           size=None,
+           scale_factor=None,
+           mode='nearest',
+           align_corners=None,
+           warning=True):
+    if warning:
+        if size is not None and align_corners:
+            input_h, input_w = tuple(int(x) for x in input.shape[2:])
+            output_h, output_w = tuple(int(x) for x in size)
+            if output_h > input_h or output_w > output_h:
+                if ((output_h > 1 and output_w > 1 and input_h > 1
+                     and input_w > 1) and (output_h - 1) % (input_h - 1)
+                        and (output_w - 1) % (input_w - 1)):
+                    warnings.warn(
+                        f'When align_corners={align_corners}, '
+                        'the output would more aligned if '
+                        f'input size {(input_h, input_w)} is `x+1` and '
+                        f'out size {(output_h, output_w)} is `nx+1`')
+    return F.interpolate(input, size, scale_factor, mode, align_corners)
+
+
+
 
 
 class Matrix_Decomposition_2D_Base(nn.Module):
@@ -171,7 +195,6 @@ class Hamburger(nn.Module):
                  norm_cfg=None,
                  **kwargs):
         super().__init__()
-
         self.ham_in = ConvModule(
             ham_channels, ham_channels, 1, norm_cfg=None, act_cfg=None)
 
@@ -188,33 +211,64 @@ class Hamburger(nn.Module):
         ham = F.relu(x + enjoy, inplace=True)
 
         return ham
+    
+class ResidualBlock(nn.Module):
+    def __init__(self, in_channels, out_channels, stride=1):
+        super(ResidualBlock, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1)
+        self.bn1 = nn.BatchNorm2d(out_channels)
+        self.relu = nn.ReLU(inplace=True)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1)
+        self.bn2 = nn.BatchNorm2d(out_channels)
+        self.stride = stride
+        self.res_plus_conv = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=stride)
+        self.res_plus_norm = nn.BatchNorm2d(out_channels)
+    def forward(self, x):
+        identity = x
 
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.relu(out)
+
+        out = self.conv2(out)
+        out = self.bn2(out)
+
+        # Apply skip connection if needed
+        if self.stride != 1 or x.shape[1] != out.shape[1]:
+            identity = self.res_plus_conv(x)
+            identity = self.res_plus_norm(identity)
+
+        out += identity
+        out = self.relu(out)
+        return out   
+    
+class course_decode(nn.Module):
+    def __init__(self, in_channels):
+        super(course_decode, self).__init__()
+        self.in_channel = sum(in_channels)
+        self.decode = nn.ModuleList()
+        self.decode.append(ResidualBlock(self.in_channel, 512))
+        self.decode.append(ResidualBlock(512, 256))
+        self.decode.append(ResidualBlock(256, 64))
+        self.decode.append(ResidualBlock(64, 2))
+    def forward(self, inputs:list):
+        inputs = torch.cat(inputs, dim=1)
+        for i, layer in enumerate(self.decode):
+            if i == 0:
+                output = layer(inputs)
+            else:
+                output = layer(output)
+        return output
 
 @MODELS.register_module()
-class LightHamHead(BaseDecodeHead):
-    """SegNeXt decode head.
-
-    This decode head is the implementation of `SegNeXt: Rethinking
-    Convolutional Attention Design for Semantic
-    Segmentation <https://arxiv.org/abs/2209.08575>`_.
-    Inspiration from https://github.com/visual-attention-network/segnext.
-
-    Specifically, LightHamHead is inspired by HamNet from
-    `Is Attention Better Than Matrix Decomposition?
-    <https://arxiv.org/abs/2109.04553>`.
-
-    Args:
-        ham_channels (int): input channels for Hamburger.
-            Defaults: 512.
-        ham_kwargs (int): kwagrs for Ham. Defaults: dict().
-    """
-
+class Cascade_Decode(BaseDecodeHead):
     def __init__(self, ham_channels=512, ham_kwargs=dict(), **kwargs):
         super().__init__(input_transform='multiple_select', **kwargs)
+        self.decode_foreground = course_decode(self.in_channels)
         self.ham_channels = ham_channels
 
         self.squeeze = ConvModule(
-            sum(self.in_channels),
+            sum(self.in_channels)+2,
             self.ham_channels,
             1,
             conv_cfg=self.conv_cfg,
@@ -231,10 +285,10 @@ class LightHamHead(BaseDecodeHead):
             norm_cfg=self.norm_cfg,
             act_cfg=self.act_cfg)
 
+        
+        
     def forward(self, inputs):
-        """Forward function."""
         inputs = self._transform_inputs(inputs)
-
         inputs = [
             resize(
                 level,
@@ -242,9 +296,15 @@ class LightHamHead(BaseDecodeHead):
                 mode='bilinear',
                 align_corners=self.align_corners) for level in inputs
         ]
+        # 只有两个通道
+        coarse_foreground = self.decode_foreground(inputs)
+        # coarse_foreground =  resize(coarse_foreground,
+        #                             size=inputs[0].shape[2:],
+        #                             mode='bilinear',
+        #                             align_corners=self.align_corners)
 
+        inputs.append(coarse_foreground)
         inputs = torch.cat(inputs, dim=1)
-        # apply a conv block to squeeze feature map
         x = self.squeeze(inputs)
         # apply hamburger module
         x = self.hamburger(x)
@@ -253,9 +313,29 @@ class LightHamHead(BaseDecodeHead):
         output = self.align(x)
         output = self.cls_seg(output)
         return output
-
-
-# a = torch.rand((1,128,75, 75))
-# b = torch.rand((1,256,38, 38))
-# c = torch.rand((1,512,19, 19))
-# inputs = 
+        
+# if __name__ == "__main__":
+#     ham_norm_cfg = dict(type='GN', num_groups=32, requires_grad=True)        
+#     decode = Cascade_Decode(in_channels=[128, 320, 512],
+#         in_index=[1, 2, 3],
+#         channels=1024,
+#         ham_channels=1024,
+#         dropout_ratio=0.1,
+#         num_classes=4,
+#         norm_cfg=ham_norm_cfg,
+#         align_corners=False,
+#         loss_decode=dict(
+#             type='FocalLoss', use_sigmoid=True, loss_weight=1.0),
+#         ham_kwargs=dict(
+#             MD_S=1,
+#             MD_R=16,
+#             train_steps=6,
+#             eval_steps=7,
+#             inv_t=100,
+#             rand_init=True))
+#     q = torch.rand((4,64,256, 256))
+#     a = torch.rand((4,128,128, 128))
+#     b = torch.rand((1,320,64, 64))
+#     c = torch.rand((1,512,32, 32))
+#     input = [q,a,b,c]
+#     out = decode.forward(input)

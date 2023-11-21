@@ -3,7 +3,7 @@
 # Licensed under the Apache License, Version 2.0 (the "License")
 import math
 import warnings
-
+import sys
 import torch
 import torch.nn as nn
 from mmcv.cnn import build_activation_layer, build_norm_layer
@@ -11,7 +11,7 @@ from mmcv.cnn.bricks import DropPath
 from mmengine.model import BaseModule
 from mmengine.model.weight_init import (constant_init, normal_init,
                                         trunc_normal_init)
-
+sys.path.insert(0, '/home/ps/CZX/mmsegmentation_czx')
 from mmseg.registry import MODELS
 
 
@@ -150,11 +150,42 @@ class MSCAAttention(BaseModule):
                         tuple(i_kernel),
                         padding=i_pad,
                         groups=channels))
+        # czx change start
+        # self.conv1 = nn.Conv2d(
+        #     channels,
+        #     channels,
+        #     kernel_size=kernel_sizes[1],
+        #     padding=paddings[1],
+        #     groups=channels)
+        # self.conv2 = nn.Conv2d(
+        #     channels,
+        #     channels,
+        #     kernel_size=kernel_sizes[2],
+        #     padding=paddings[2],
+        #     groups=channels)
+        # self.conv3 = nn.Conv2d(
+        #     channels,
+        #     channels,
+        #     kernel_size=kernel_sizes[3],
+        #     padding=paddings[3],
+        #     groups=channels)
+        # self.conv_final = nn.Conv2d(channels, channels, 1)
+        # czx change end
         self.conv3 = nn.Conv2d(channels, channels, 1)
 
     def forward(self, x):
         """Forward function."""
-
+        # czx change start
+        # u = x.clone()
+        # attn = self.conv0(x)
+        # attn_1 = self.conv1(attn)
+        # attn_2 = self.conv2(attn)
+        # attn_3 = self.conv3(attn)
+        # attn = attn+attn_1+attn_2+attn_3
+        # attn = self.conv_final(attn)
+        # x = attn*u
+        # czx change end
+        
         u = x.clone()
 
         attn = self.conv0(x)
@@ -465,3 +496,9 @@ class MSCAN(BaseModule):
             outs.append(x)
 
         return outs
+
+
+# backbone = MSCAN()
+# input = torch.rand((1,3,600,600))
+# output = backbone.forward(input)
+# print('k')

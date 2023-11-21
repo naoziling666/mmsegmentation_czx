@@ -70,7 +70,7 @@ class SegLocalVisualizer(Visualizer):
                  classes: Optional[List] = None,
                  palette: Optional[List] = None,
                  dataset_name: Optional[str] = None,
-                 alpha: float = 0.8,
+                 alpha: float = 1,
                  **kwargs):
         super().__init__(name, image, vis_backends, save_dir, **kwargs)
         self.alpha: float = alpha
@@ -116,7 +116,52 @@ class SegLocalVisualizer(Visualizer):
             np.uint8)
         self.set_image(color_seg)
         return color_seg
+    
+    
+    def _draw_sem_seg_pred_four_class(self, image: np.ndarray, sem_seg: PixelData, gt:PixelData,
+                      classes: Optional[List],
+                      palette: Optional[List]) -> np.ndarray:
+        """Draw semantic seg of GT or prediction.
 
+        Args:
+            image (np.ndarray): The image to draw.
+            sem_seg (:obj:`PixelData`): Data structure for pixel-level
+                annotations or predictions.
+            classes (list, optional): Input classes for result rendering, as
+                the prediction of segmentation model is a segment map with
+                label indices, `classes` is a list which includes items
+                responding to the label indices. If classes is not defined,
+                visualizer will take `cityscapes` classes by default.
+                Defaults to None.
+            palette (list, optional): Input palette for result rendering, which
+                is a list of color palette responding to the classes.
+                Defaults to None.
+
+        Returns:
+            np.ndarray: the drawn image which channel is RGB.
+        """
+        num_classes = len(classes)
+
+        sem_seg = sem_seg.cpu().data
+        gt = gt.cpu().data
+        ids = np.unique(sem_seg)[::-1]
+        legal_indices = ids < num_classes
+        ids = ids[legal_indices]
+        labels = np.array(ids, dtype=np.int64)
+
+        colors = [palette[label] for label in labels]
+
+        mask = np.zeros_like(image, dtype=np.uint8)
+        for label, color in zip(labels, colors):
+            mask[sem_seg[0] == label, :] = color
+        mask[gt[0]==255] = [0,0,0]
+        color_seg = (image * (1 - self.alpha) + mask * self.alpha).astype(
+            np.uint8)
+        self.set_image(color_seg)
+        return color_seg
+    
+    
+    
     def set_dataset_meta(self,
                          classes: Optional[List] = None,
                          palette: Optional[List] = None,
@@ -211,9 +256,13 @@ class SegLocalVisualizer(Visualizer):
                                         'not provided when ' \
                                         'visualizing semantic ' \
                                         'segmentation results.'
-            pred_img_data = self._draw_sem_seg(pred_img_data,
-                                               data_sample.pred_sem_seg,
-                                               classes, palette)
+            # pred_img_data = self._draw_sem_seg(pred_img_data,
+            #                                    data_sample.pred_sem_seg,
+            #                                    classes, palette)
+            pred_img_data = self._draw_sem_seg_pred_four_class(pred_img_data,
+                                    data_sample.pred_sem_seg,
+                                    data_sample.gt_sem_seg,
+                                    classes, palette)
 
         if gt_img_data is not None and pred_img_data is not None:
             drawn_img = np.concatenate((gt_img_data, pred_img_data), axis=1)

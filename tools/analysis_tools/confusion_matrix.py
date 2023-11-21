@@ -1,24 +1,27 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import argparse
 import os
-
+import pickle as pkl
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.ticker import MultipleLocator
 from mmengine import Config, DictAction
-from mmengine.utils import ProgressBar, load
-
-from mmseg.datasets import build_dataset
+import mmengine
+# from mmengine.utils import ProgressBar, load
+from mmengine.utils import ProgressBar
+import mmcv
+from mmseg.registry import DATASETS
+# from mmseg.datasets import build_dataset
 
 
 def parse_args():
     parser = argparse.ArgumentParser(
         description='Generate confusion matrix from segmentation results')
-    parser.add_argument('config', help='test config file path')
+    parser.add_argument('--config', help='test config file path',default='/home/ps/CZX/mmsegmentation_czx/configs/segnext/segnext_mscan_-l_2xb4-adamw-focal_loss-40k_seafog_3band-600*600_neck_channel_attention.py')
     parser.add_argument(
-        'prediction_path', help='prediction path where test .pkl result')
+        '--prediction_path', help='prediction path where test .pkl result', default='/home/ps/CZX/mmsegmentation_czx/work_dirs/segnext_mscan_-l_2xb4-adamw-focal_loss-40k_seafog_3band-600*600_neck_channel_attention/20231113-120633/test.pkl')
     parser.add_argument(
-        'save_dir', help='directory where confusion matrix will be saved')
+        '--save_dir', help='directory where confusion matrix will be saved', default='home/ps/CZX/mmsegmentation_czx/work_dirs/segnext_mscan_-l_2xb4-adamw-focal_loss-40k_seafog_3band-600*600_neck_channel_attention/20231113-120633')
     parser.add_argument(
         '--show', action='store_true', help='show confusion matrix')
     parser.add_argument(
@@ -155,21 +158,22 @@ def main():
     if args.cfg_options is not None:
         cfg.merge_from_dict(args.cfg_options)
 
-    results = load(args.prediction_path)
-
+    results = mmengine.fileio.load(args.prediction_path)
+    # results = pkl.load(args.prediction_path)
+    
     assert isinstance(results, list)
-    if isinstance(results[0], np.ndarray):
-        pass
-    else:
-        raise TypeError('invalid type of prediction results')
+    # if isinstance(results[0], np.ndarray):
+    #     pass
+    # else:
+    #     raise TypeError('invalid type of prediction results')
 
-    if isinstance(cfg.data.test, dict):
-        cfg.data.test.test_mode = True
-    elif isinstance(cfg.data.test, list):
-        for ds_cfg in cfg.data.test:
-            ds_cfg.test_mode = True
+    # if isinstance(cfg.test_dataloader.dataset, dict):
+    #     cfg.data.test.test_mode = True
+    # elif isinstance(cfg.data.test, list):
+    #     for ds_cfg in cfg.data.test:
+    #         ds_cfg.test_mode = True
 
-    dataset = build_dataset(cfg.data.test)
+    dataset = DATASETS.build(cfg.test_dataloader.dataset)
     confusion_matrix = calculate_confusion_matrix(dataset, results)
     plot_confusion_matrix(
         confusion_matrix,

@@ -1,7 +1,7 @@
 # dataset settings
-dataset_type = 'SeafogDataset_16band'
-data_root = 'data/seafog_16_6_3'
-crop_size = (512, 512)
+dataset_type = 'SeafogDataset_3band'
+data_root = 'data/seafog_600'
+crop_size = (600, 600)
 train_pipeline = [
     dict(type='LoadImageFromNpyFile'),
     dict(type='LoadAnnotations', reduce_zero_label=False),
@@ -48,7 +48,7 @@ train_dataloader = dict(
         type=dataset_type,
         data_root=data_root,
         data_prefix=dict(
-            img_path='img_dir_16/train', seg_map_path='ann_dir/train'),
+            img_path='crop_image_16band/train', seg_map_path='crop_mask/train'),
         pipeline=train_pipeline))
 val_dataloader = dict(
     batch_size=1,
@@ -58,7 +58,7 @@ val_dataloader = dict(
     dataset=dict(
         type=dataset_type,
         data_root=data_root,
-        data_prefix=dict(img_path='img_dir_16/val', seg_map_path='ann_dir/val'),
+        data_prefix=dict(img_path='crop_image_16band/val', seg_map_path='crop_mask/val'),
         pipeline=test_pipeline))
 test_dataloader = val_dataloader
 

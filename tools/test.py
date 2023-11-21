@@ -11,8 +11,8 @@ from mmengine.runner import Runner
 def parse_args():
     parser = argparse.ArgumentParser(
         description='MMSeg test (and eval) a model')
-    parser.add_argument('config', help='train config file path')
-    parser.add_argument('checkpoint', help='checkpoint file')
+    parser.add_argument('--config', help='train config file path', default='/home/ps/CZX/mmsegmentation_czx/configs/segnext/segnext_mscan_-l_2xb4-adamw-focal_loss-40k_seafog_3band-600*600_neck_channel_attention.py')
+    parser.add_argument('--checkpoint', help='checkpoint file', default='/home/ps/CZX/mmsegmentation_czx/work_dirs/segnext_mscan_-l_2xb4-adamw-focal_loss-40k_seafog_3band-600*600_neck_channel_attention/20231113-120633/iter_40000.pth')
     parser.add_argument(
         '--work-dir',
         help=('if specified, the evaluation metric results will be dumped'
@@ -20,7 +20,8 @@ def parse_args():
     parser.add_argument(
         '--out',
         type=str,
-        help='The directory to save output prediction for offline evaluation')
+        help='The directory to save output prediction for offline evaluation',
+        default='/home/ps/CZX/mmsegmentation_czx/work_dirs/segnext_mscan_-l_2xb4-adamw-focal_loss-40k_seafog_3band-600*600_neck_channel_attention/20231113-120633/test')
     parser.add_argument(
         '--show', action='store_true', help='show prediction results')
     parser.add_argument(
@@ -28,6 +29,7 @@ def parse_args():
         help='directory where painted images will be saved. '
         'If specified, it will be automatically saved '
         'to the work_dir/timestamp/show_dir')
+        # default='work_dirs/segnext_mscan_-l_2xb4-adamw-focal_loss-40k_seafog_3band-600*600_neck_channel_attention/20231113-120633/change')
     parser.add_argument(
         '--wait-time', type=float, default=2, help='the interval of show (s)')
     parser.add_argument(
@@ -75,11 +77,12 @@ def trigger_visualization_hook(cfg, args):
             'VisualizationHook must be included in default_hooks.'
             'refer to usage '
             '"visualization=dict(type=\'VisualizationHook\')"')
-
+    cfg.visualizer._scope_ = 'mmseg'
     return cfg
 
 
 def main():
+    
     args = parse_args()
 
     # load config
@@ -115,9 +118,13 @@ def main():
     # build the runner from config
     runner = Runner.from_cfg(cfg)
 
+
     # start testing
     runner.test()
 
 
 if __name__ == '__main__':
     main()
+# python tools/test.py configs/fcn/fcn_r50-d8_512x512_20k_voc12.py work_dir/latest.pth --show-dir="output"
+
+# ython tools/test.py --cfg-options test_evaluator._delete_=True  test_evaluator.type=DumpResults test_evaluator.out_file_path=work_dirs/segnext_mscan_-l_2xb4-adamw-focal_loss-40k_seafog_3band-600*600_neck_channel_attention/20231113-120633/test.pkl

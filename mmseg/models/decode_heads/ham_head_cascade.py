@@ -9,7 +9,7 @@ from mmengine.device import get_device
 
 from mmseg.registry import MODELS
 from ..utils import resize
-from .decode_head import BaseDecodeHead
+from .cascade_decode_head import BaseCascadeDecodeHead
 
 
 class Matrix_Decomposition_2D_Base(nn.Module):
@@ -191,7 +191,7 @@ class Hamburger(nn.Module):
 
 
 @MODELS.register_module()
-class LightHamHead(BaseDecodeHead):
+class LightHamHead_cascade(BaseCascadeDecodeHead):
     """SegNeXt decode head.
 
     This decode head is the implementation of `SegNeXt: Rethinking
@@ -214,7 +214,7 @@ class LightHamHead(BaseDecodeHead):
         self.ham_channels = ham_channels
 
         self.squeeze = ConvModule(
-            sum(self.in_channels),
+            sum(self.in_channels)+4,
             self.ham_channels,
             1,
             conv_cfg=self.conv_cfg,
@@ -231,10 +231,13 @@ class LightHamHead(BaseDecodeHead):
             norm_cfg=self.norm_cfg,
             act_cfg=self.act_cfg)
 
-    def forward(self, inputs):
+    def forward(self, inputs, prev_output):
         """Forward function."""
         inputs = self._transform_inputs(inputs)
-
+        prev_output = resize(prev_output,
+                            size=inputs[0].shape[2:],
+                            mode='bilinear',
+                            align_corners=self.align_corners)
         inputs = [
             resize(
                 level,
@@ -242,7 +245,7 @@ class LightHamHead(BaseDecodeHead):
                 mode='bilinear',
                 align_corners=self.align_corners) for level in inputs
         ]
-
+        inputs.append(prev_output)
         inputs = torch.cat(inputs, dim=1)
         # apply a conv block to squeeze feature map
         x = self.squeeze(inputs)

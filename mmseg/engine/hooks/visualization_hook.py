@@ -2,7 +2,7 @@
 import os.path as osp
 import warnings
 from typing import Optional, Sequence
-
+import numpy as np
 import mmcv
 import mmengine.fileio as fileio
 from mmengine.hooks import Hook
@@ -84,9 +84,10 @@ class SegVisualizationHook(Hook):
         if self.every_n_inner_iters(batch_idx, self.interval):
             for output in outputs:
                 img_path = output.img_path
-                img_bytes = fileio.get(
-                    img_path, backend_args=self.backend_args)
-                img = mmcv.imfrombytes(img_bytes, channel_order='rgb')
+                # img_bytes = fileio.get(
+                #     img_path, backend_args=self.backend_args)
+                # img = mmcv.imfrombytes(img_bytes, channel_order='rgb')
+                img = np.load(output.img_path)
                 window_name = f'{mode}_{osp.basename(img_path)}'
 
                 self._visualizer.add_datasample(

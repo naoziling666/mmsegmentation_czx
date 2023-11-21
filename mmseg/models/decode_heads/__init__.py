@@ -33,7 +33,9 @@ from .setr_mla_head import SETRMLAHead
 from .setr_up_head import SETRUPHead
 from .stdc_head import STDCHead
 from .uper_head import UPerHead
-
+from .assymetricdecoder import AssymetricDecoder
+from .ham_head_cascade import LightHamHead_cascade
+from .cascade_decode import Cascade_Decode
 __all__ = [
     'FCNHead', 'PSPHead', 'ASPPHead', 'PSAHead', 'NLHead', 'GCHead', 'CCHead',
     'UPerHead', 'DepthwiseSeparableASPPHead', 'ANNHead', 'DAHead', 'OCRHead',
@@ -42,5 +44,6 @@ __all__ = [
     'SETRMLAHead', 'DPTHead', 'SETRMLAHead', 'SegmenterMaskTransformerHead',
     'SegformerHead', 'ISAHead', 'STDCHead', 'IterativeDecodeHead',
     'KernelUpdateHead', 'KernelUpdator', 'MaskFormerHead', 'Mask2FormerHead',
-    'LightHamHead', 'PIDHead', 'DDRHead'
+    'LightHamHead', 'PIDHead', 'DDRHead','AssymetricDecoder','LightHamHead_cascade',
+    'Cascade_Decode'
 ]

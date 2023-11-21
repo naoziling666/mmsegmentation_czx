@@ -7,14 +7,14 @@ import sys
 from mmengine.config import Config, DictAction
 from mmengine.logging import print_log
 from mmengine.runner import Runner
-sys.path.insert(0, '/mnt/workspace/users/chengzhixiang/mmsegmentation_czx/')
+sys.path.insert(0, '/home/ps/CZX/mmsegmentation_czx')
 from mmseg.registry import RUNNERS
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a segmentor')
-    parser.add_argument('--config', help='train config file path',default="/mnt/workspace/users/chengzhixiang/mmsegmentation_czx/configs/deeplabv3plus/deeplabv3plus_r50-d8_8xb4-160k_seafog_multiband-512x512.py")
-    parser.add_argument('--work-dir', help='the dir to save logs and models',default="/mnt/workspace/users/chengzhixiang/mmsegmentation_czx/work_dirs/debug_test")
+    parser.add_argument('--config', help='train config file path',default="/home/ps/CZX/mmsegmentation_czx/configs/segnext/segnext_mscan_-l_2xb4-adamw-focal_loss-40k_seafog_3band-600*600_cascadencoderdecoder.py")
+    parser.add_argument('--work-dir', help='the dir to save logs and models',default="/home/ps/CZX/mmsegmentation_czx/work_dirs/debug_test")
     parser.add_argument(
         '--resume',
         action='store_true',
