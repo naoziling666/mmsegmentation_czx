@@ -45,8 +45,9 @@ def calculate_confusion_matrix_from_pkl(pkl_path, num_classes=4):
 
 
 def plot_confusion_matrix(confusion_matrix,
+                          name,
                           labels=['fog', 'cloud', 'cloud_fog', 'ocean'],
-                          save_dir='/home/ps/CZX/mmsegmentation_czx/work_dirs/segnext_mscan_-l_2xb4-adamw-focal_loss-40k_seafog_3band-600*600_neck_channel_attention/20231113-120633',
+                          save_dir='/home/ps/CZX/mmsegmentation_czx/work_dirs/infer_600_600/confusion_matrix',
                           show=True,
                           title='Normalized Confusion Matrix',
                           color_theme='winter'):
@@ -122,7 +123,7 @@ def plot_confusion_matrix(confusion_matrix,
     fig.tight_layout()
     if save_dir is not None:
         plt.savefig(
-            os.path.join(save_dir, 'confusion_matrix.png'), format='png')
+            os.path.join(save_dir, name), format='png')
     if show:
         plt.show()
 
@@ -133,9 +134,9 @@ if __name__ == "__main__":
     # gt_path = "/home/ps/CZX/mmsegmentation_czx/data/seafog_600/crop_mask/val"
     # pred_path = "/home/ps/CZX/mmsegmentation_czx/work_dirs/segnext_mscan_-l_2xb4-adamw-focal_loss-40k_seafog_3band-600*600_neck_channel_attention/20231113-120633/test"
     # confusion_m = calculate_confusion_matrix(gt_path, pred_path, 4)
-    pkl_path = '/home/ps/CZX/mmsegmentation_czx/work_dirs/segnext_mscan_-l_2xb4-adamw-focal_loss-40k_seafog_3band-600*600_neck_channel_attention/20231113-120633/test.pkl'
+    pkl_path = '/home/ps/CZX/mmsegmentation_czx/work_dirs/infer_600_600/pkl/yhdata.pkl'
     # pkl 由test.py导出，test.py中有具体命令
-    confusion_m = calculate_confusion_matrix_from_pkl(pkl_path)
-    plot_confusion_matrix(confusion_matrix=confusion_m)
+    confusion_m = calculate_confusion_matrix_from_pkl(pkl_path, num_classes=2)
+    plot_confusion_matrix(confusion_matrix=confusion_m, name='yhdata.png', labels=['fog','other'])
     
     

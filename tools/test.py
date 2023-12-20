@@ -11,17 +11,19 @@ from mmengine.runner import Runner
 def parse_args():
     parser = argparse.ArgumentParser(
         description='MMSeg test (and eval) a model')
-    parser.add_argument('--config', help='train config file path', default='/home/ps/CZX/mmsegmentation_czx/configs/segnext/segnext_mscan_-l_2xb4-adamw-focal_loss-40k_seafog_3band-600*600_neck_channel_attention.py')
-    parser.add_argument('--checkpoint', help='checkpoint file', default='/home/ps/CZX/mmsegmentation_czx/work_dirs/segnext_mscan_-l_2xb4-adamw-focal_loss-40k_seafog_3band-600*600_neck_channel_attention/20231113-120633/iter_40000.pth')
+    parser.add_argument('--config', help='train config file path',
+                        default='/home/ps/CZX/mmsegmentation_czx/configs/segnext/yhdata_segnext_mscan_-l_2xb4-adamw-focal_loss-40k_seafog_3band-600*600_neck_channel_attention_cascade_decode.py')
+    parser.add_argument('--checkpoint', help='checkpoint file',
+                        default='/home/ps/CZX/mmsegmentation_czx/work_dirs/yhdata_segnext_mscan_-l_2xb4-adamw-focal_loss-40k_seafog_3band-600*600_neck_channel_attention_cascade_decode/20231219-121542/iter_24000.pth')
     parser.add_argument(
         '--work-dir',
         help=('if specified, the evaluation metric results will be dumped'
-              'into the directory as json'))
+              'into the directory as json'),
+        default="/home/ps/CZX/mmsegmentation_czx/work_dirs/debug_test")
     parser.add_argument(
         '--out',
         type=str,
-        help='The directory to save output prediction for offline evaluation',
-        default='/home/ps/CZX/mmsegmentation_czx/work_dirs/segnext_mscan_-l_2xb4-adamw-focal_loss-40k_seafog_3band-600*600_neck_channel_attention/20231113-120633/test')
+        help='The directory to save output prediction for offline evaluation')
     parser.add_argument(
         '--show', action='store_true', help='show prediction results')
     parser.add_argument(
@@ -126,5 +128,12 @@ def main():
 if __name__ == '__main__':
     main()
 # python tools/test.py configs/fcn/fcn_r50-d8_512x512_20k_voc12.py work_dir/latest.pth --show-dir="output"
+# 导出pkl用于绘制混淆矩阵
+# python tools/test.py --cfg-options test_evaluator._delete_=True  test_evaluator.type=DumpResults test_evaluator.out_file_path=work_dirs/infer_600_600/pkl/kh_3band.pkl
 
-# ython tools/test.py --cfg-options test_evaluator._delete_=True  test_evaluator.type=DumpResults test_evaluator.out_file_path=work_dirs/segnext_mscan_-l_2xb4-adamw-focal_loss-40k_seafog_3band-600*600_neck_channel_attention/20231113-120633/test.pkl
+
+
+# 导出预测结果，会将预测结果保存在--out中，这里面导出的结果
+# 会考虑到reduce_zero_label的情况，即将预测出的结果整体加1，
+# 此时预测的mask中没有0类别
+# python tools/test.pt --out infer/a 

@@ -1,9 +1,9 @@
 # dataset settings
-dataset_type = 'SeafogDataset_3band'
-data_root = 'data/seafog_600'
+dataset_type = 'YhDataset'
+data_root = 'data/yhdata'
 crop_size = (600, 600)
 train_pipeline = [
-    dict(type='LoadImageFromNpyFile'),
+    dict(type='LoadImageFromFile'),
     dict(type='LoadAnnotations', reduce_zero_label=True),
     dict(
         type='RandomResize',
@@ -12,11 +12,11 @@ train_pipeline = [
         keep_ratio=True),
     dict(type='RandomCrop', crop_size=crop_size, cat_max_ratio=0.75),
     dict(type='RandomFlip', prob=0.5),
-    # dict(type='PhotoMetricDistortion'),
+    dict(type='PhotoMetricDistortion'),
     dict(type='PackSegInputs')
 ]
 test_pipeline = [
-    dict(type='LoadImageFromNpyFile'),
+    dict(type='LoadImageFromFile'),
     dict(type='Resize', scale=(1024, 1024), keep_ratio=True),
     # add loading annotation after ``Resize`` because ground truth
     # does not need to do resize data transform
@@ -25,7 +25,7 @@ test_pipeline = [
 ]
 img_ratios = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75]
 tta_pipeline = [
-    dict(type='LoadImageFromNpyFile', backend_args=None),
+    dict(type='LoadImageFromFile', backend_args=None),
     dict(
         type='TestTimeAug',
         transforms=[
@@ -48,7 +48,7 @@ train_dataloader = dict(
         type=dataset_type,
         data_root=data_root,
         data_prefix=dict(
-            img_path='crop_image_16band/train', seg_map_path='crop_mask/train'),
+            img_path='img/train', seg_map_path='ann/train'),
         pipeline=train_pipeline))
 val_dataloader = dict(
     batch_size=1,
@@ -58,7 +58,7 @@ val_dataloader = dict(
     dataset=dict(
         type=dataset_type,
         data_root=data_root,
-        data_prefix=dict(img_path='crop_image_16band/val', seg_map_path='crop_mask/val'),
+        data_prefix=dict(img_path='img/val', seg_map_path='ann/val'),
         pipeline=test_pipeline))
 test_dataloader = val_dataloader
 

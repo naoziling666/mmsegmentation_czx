@@ -107,4 +107,4 @@ dependencies:
       - wcwidth==0.2.6
       - yapf==0.40.1
       - zipp==3.16.2
-prefix: /home/pai/envs/openmmlab
+

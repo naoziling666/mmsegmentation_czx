@@ -29,7 +29,8 @@ from .seafog_multiband import SeafogDataset_multiband
 from .seafog_16band import SeafogDataset_16band
 from .seafog_6band import SeafogDataset_6band
 from .seafog_3band import SeafogDataset_3band
-
+from .fy4 import Fy4Dataset
+from .yhdata import YhDataset
 # yapf: disable
 from .transforms import (CLAHE, AdjustGamma, Albu, BioMedical3DPad,
                          BioMedical3DRandomCrop, BioMedical3DRandomFlip,
@@ -65,5 +66,6 @@ __all__ = [
     'MapillaryDataset_v2', 'Albu', 'LEVIRCDDataset',
     'LoadMultipleRSImageFromFile', 'LoadSingleRSImageFromFile',
     'ConcatCDInput', 'BaseCDDataset', 'DSDLSegDataset', 'BDD100KDataset','SeafogDataset',
-    'seafogDataset_multiband','SeafogDataset_16band','SeafogDataset_6band','SeafogDataset_3band'
+    'seafogDataset_multiband','SeafogDataset_16band','SeafogDataset_6band','SeafogDataset_3band',
+    'Fy4Dataset','YhDataset'
 ]
