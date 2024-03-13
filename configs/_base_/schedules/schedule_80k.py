@@ -1,16 +1,29 @@
 # optimizer
-optimizer = dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0005)
-optim_wrapper = dict(type='OptimWrapper', optimizer=optimizer, clip_grad=None)
+optim_wrapper = dict(
+    _delete_=True,
+    type='OptimWrapper',
+    optimizer=dict(
+        type='AdamW', lr=0.0006, betas=(0.9, 0.999), weight_decay=0.01),
+    paramwise_cfg=dict(
+        custom_keys={
+            'pos_block': dict(decay_mult=0.),
+            'norm': dict(decay_mult=0.),
+            'head': dict(lr_mult=10.)
+        }))
 # learning policy
 param_scheduler = [
     dict(
+        type='LinearLR', start_factor=3e-6, by_epoch=False, begin=0, end=1500),
+    dict(
         type='PolyLR',
-        eta_min=1e-4,
-        power=0.9,
-        begin=0,
+        power=1.0,
+        begin=1500,
         end=80000,
-        by_epoch=False)
+        eta_min=0.0,
+        by_epoch=False,
+    )
 ]
+
 # training schedule for 80k
 train_cfg = dict(type='IterBasedTrainLoop', max_iters=80000, val_interval=8000)
 val_cfg = dict(type='ValLoop')
@@ -19,6 +32,6 @@ default_hooks = dict(
     timer=dict(type='IterTimerHook'),
     logger=dict(type='LoggerHook', interval=50, log_metric_by_epoch=False),
     param_scheduler=dict(type='ParamSchedulerHook'),
-    checkpoint=dict(type='CheckpointHook', by_epoch=False, interval=8000),
+    checkpoint=dict(type='CheckpointHook', by_epoch=False, interval=8000,max_keep_ckpts=2),
     sampler_seed=dict(type='DistSamplerSeedHook'),
     visualization=dict(type='SegVisualizationHook'))

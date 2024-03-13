@@ -39,7 +39,7 @@ model = dict(
         type='ChannelAttention',
         channel_list = [64, 128, 320, 512]),
    decode_head=dict(
-        type='Cascade_Decode',
+        type='Cascade_Decode_focal_loss',
         in_channels=[128, 320, 512],
         in_index=[1, 2, 3],
         channels=1024,
@@ -49,7 +49,7 @@ model = dict(
         norm_cfg=ham_norm_cfg,
         align_corners=False,
         loss_decode=dict(
-            type='FocalLoss', use_sigmoid=True, loss_weight=1.0),
+            type='FocalLoss', use_sigmoid=True, loss_weight=1.0,class_weight=[0.2, 0.2, 0.4, 0.2]),
         ham_kwargs=dict(
             MD_S=1,
             MD_R=16,
@@ -57,15 +57,15 @@ model = dict(
             eval_steps=7,
             inv_t=100,
             rand_init=True)),
-    # auxiliary_head=dict(
-    #     type='AssymetricDecoder',
-    #     in_channels=[64, 128, 320, 512],
-    #     in_index=[0, 1, 2, 3],
-    #     channels=256,
-    #     num_classes=5,
-    #     input_transform = 'multiple_select',
-    #     loss_decode=dict(
-    #         type='FocalLoss', use_sigmoid=True, loss_weight=0.6)),
+    auxiliary_head=dict(
+        type='AssymetricDecoder',
+        in_channels=[64, 128, 320, 512],
+        in_index=[0, 1, 2, 3],
+        channels=256,
+        num_classes=4,
+        input_transform = 'multiple_select',
+        loss_decode=dict(
+            type='FocalLoss', use_sigmoid=True, loss_weight=0.6,class_weight=[0.2, 0.2, 0.4, 0.2])),
     # model training and testing settings
     train_cfg=dict(),
     test_cfg=dict(mode='whole'))
@@ -102,6 +102,6 @@ param_scheduler = [
 
 
 
-model_wrapper_cfg = dict(
-                find_unused_parameters=True
-            )
+# model_wrapper_cfg = dict(
+#                 find_unused_parameters=True
+#             )

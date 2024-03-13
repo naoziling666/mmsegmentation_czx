@@ -72,17 +72,6 @@ train_dataloader = dict(
     batch_size=4,
     num_workers=4,)
 # optimizer
-optim_wrapper = dict(
-    _delete_=True,
-    type='OptimWrapper',
-    optimizer=dict(
-        type='AdamW', lr=0.0006, betas=(0.9, 0.999), weight_decay=0.01),
-    paramwise_cfg=dict(
-        custom_keys={
-            'pos_block': dict(decay_mult=0.),
-            'norm': dict(decay_mult=0.),
-            'head': dict(lr_mult=10.)
-        }))
 
 param_scheduler = [
     dict(

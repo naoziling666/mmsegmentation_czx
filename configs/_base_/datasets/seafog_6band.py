@@ -1,6 +1,6 @@
 # dataset settings
 dataset_type = 'SeafogDataset_3band'
-data_root = 'data/seafog_600'
+data_root = 'data/seafog_data/seafog_600'
 crop_size = (600, 600)
 train_pipeline = [
     dict(type='LoadImageFromNpyFile'),

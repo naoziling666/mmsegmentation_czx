@@ -10,9 +10,9 @@ from torch import Tensor
 
 from mmseg.structures import build_pixel_sampler
 from mmseg.utils import ConfigType, SampleList
-from ..builder import build_loss
-from ..losses import accuracy
-from ..utils import resize
+from mmseg.models.builder import build_loss
+from mmseg.models.losses import accuracy
+from mmseg.models.utils import resize
 
 
 class BaseDecodeHead(BaseModule, metaclass=ABCMeta):

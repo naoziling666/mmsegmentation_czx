@@ -13,7 +13,7 @@ from mmseg.registry import RUNNERS
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a segmentor')
-    parser.add_argument('--config', help='train config file path',default="/home/ps/CZX/mmsegmentation_czx/configs/segnext/FY4_segnext_mscan_-l_2xb4-adamw-focal_loss-40k_seafog_3band-600*600_neck_channel_attention_cascade_decode.py")
+    parser.add_argument('--config', help='train config file path',default="/root/autodl-pub/CZX/mmsegmentation_czx/configs/segnext/segnext_mscan_-l_2xb4-adamw-focal_loss-40k_seafog_3band-600*600.py")
     parser.add_argument('--work-dir', help='the dir to save logs and models',default="/home/ps/CZX/mmsegmentation_czx/work_dirs/debug_test")
     parser.add_argument(
         '--resume',

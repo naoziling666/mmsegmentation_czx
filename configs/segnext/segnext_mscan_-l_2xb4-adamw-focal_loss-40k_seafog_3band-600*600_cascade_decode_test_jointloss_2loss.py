@@ -36,17 +36,19 @@ model = dict(
     #     in_channels=512,
     #     channel_list=[64, 128, 320, 512]),
     decode_head=dict(
-        type='LightHamHead',
+        type='Cascade_Decode_test',
         in_channels=[128, 320, 512],
         in_index=[1, 2, 3],
         channels=1024,
         ham_channels=1024,
+        foreground_index = [0,1,2],
+        background_index = [3],
         dropout_ratio=0.1,
         num_classes=4,
         norm_cfg=ham_norm_cfg,
         align_corners=False,
-        loss_decode=dict(
-            type='FocalLoss', use_sigmoid=True, loss_weight=1.0),
+        loss_decode=[dict(type='FocalLoss', use_sigmoid=True, loss_weight=350.0, class_weight=[0.3,0.3,0.3,0.1]),
+                 dict(type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0)],
         ham_kwargs=dict(
             MD_S=1,
             MD_R=16,
@@ -59,7 +61,7 @@ model = dict(
         in_channels=[64, 128, 320, 512],
         in_index=[0, 1, 2, 3],
         channels=256,
-        num_classes=4,
+        num_classes=5,
         input_transform = 'multiple_select',
         loss_decode=dict(
             type='FocalLoss', use_sigmoid=True, loss_weight=0.6)),

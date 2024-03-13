@@ -31,10 +31,9 @@ model = dict(
         attention_kernel_paddings=[2, [0, 3], [0, 5], [0, 10]],
         act_cfg=dict(type='GELU'),
         norm_cfg=dict(type='BN', requires_grad=True)),
-    # neck=dict(
-    #     type='SceneRelation',
-    #     in_channels=512,
-    #     channel_list=[64, 128, 320, 512]),
+    neck=dict(
+        type='ChannelAttention',
+        channel_list = [64, 128, 320, 512]),
     decode_head=dict(
         type='LightHamHead',
         in_channels=[128, 320, 512],
@@ -54,15 +53,15 @@ model = dict(
             eval_steps=7,
             inv_t=100,
             rand_init=True)),
-    # auxiliary_head=dict(
-    #     type='AssymetricDecoder',
-    #     in_channels=[64, 128, 320, 512],
-    #     in_index=[0, 1, 2, 3],
-    #     channels=256,
-    #     num_classes=5,
-    #     input_transform = 'multiple_select',
-    #     loss_decode=dict(
-    #         type='FocalLoss', use_sigmoid=True, loss_weight=0.6)),
+    auxiliary_head=dict(
+        type='AssymetricDecoder',
+        in_channels=[64, 128, 320, 512],
+        in_index=[0, 1, 2, 3],
+        channels=256,
+        num_classes=4,
+        input_transform = 'multiple_select',
+        loss_decode=dict(
+            type='FocalLoss', use_sigmoid=True, loss_weight=0.8)),
     # model training and testing settings
     train_cfg=dict(),
     test_cfg=dict(mode='whole'))
@@ -76,7 +75,7 @@ optim_wrapper = dict(
     _delete_=True,
     type='OptimWrapper',
     optimizer=dict(
-        type='AdamW', lr=0.006, betas=(0.9, 0.999), weight_decay=0.01),
+        type='AdamW', lr=0.0006, betas=(0.9, 0.999), weight_decay=0.01),
     paramwise_cfg=dict(
         custom_keys={
             'pos_block': dict(decay_mult=0.),

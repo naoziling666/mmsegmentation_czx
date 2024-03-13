@@ -46,7 +46,7 @@ model = dict(
         norm_cfg=ham_norm_cfg,
         align_corners=False,
         loss_decode=dict(
-            type='FocalLoss', use_sigmoid=True, loss_weight=1.0),
+            type='FocalLoss', use_sigmoid=True, loss_weight=0.3),
         ham_kwargs=dict(
             MD_S=1,
             MD_R=16,
@@ -76,7 +76,7 @@ optim_wrapper = dict(
     _delete_=True,
     type='OptimWrapper',
     optimizer=dict(
-        type='AdamW', lr=0.006, betas=(0.9, 0.999), weight_decay=0.01),
+        type='AdamW', lr=0.06, betas=(0.9, 0.999), weight_decay=0.01),
     paramwise_cfg=dict(
         custom_keys={
             'pos_block': dict(decay_mult=0.),

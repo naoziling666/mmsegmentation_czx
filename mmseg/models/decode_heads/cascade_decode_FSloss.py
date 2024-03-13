@@ -7,9 +7,11 @@ import warnings
 from mmcv.cnn import ConvModule
 from mmengine.device import get_device
 from .decode_head import BaseDecodeHead
-
+from typing import List, Tuple
+from torch import Tensor
+from mmseg.utils import ConfigType, SampleList
 from mmseg.registry import MODELS
-
+from mmseg.models.losses import accuracy
 
 def resize(input,
            size=None,
@@ -261,12 +263,13 @@ class course_decode(nn.Module):
         return output
 
 @MODELS.register_module()
-class Cascade_Decode(BaseDecodeHead):
-    def __init__(self, ham_channels=512, ham_kwargs=dict(), **kwargs):
+class Cascade_Decode_FSloss(BaseDecodeHead):
+    def __init__(self, ham_channels=512, foreground_index = [0,1,2], background_index = [3], ham_kwargs=dict(), **kwargs):
         super().__init__(input_transform='multiple_select', **kwargs)
         self.decode_foreground = course_decode(self.in_channels)
         self.ham_channels = ham_channels
-
+        self.foreground_index = foreground_index
+        self.background_index = background_index
         self.squeeze = ConvModule(
             sum(self.in_channels)+2,
             self.ham_channels,
@@ -284,7 +287,120 @@ class Cascade_Decode(BaseDecodeHead):
             conv_cfg=self.conv_cfg,
             norm_cfg=self.norm_cfg,
             act_cfg=self.act_cfg)
+        
+    def predict(self, inputs: Tuple[Tensor], batch_img_metas: List[dict],
+                test_cfg: ConfigType) -> Tensor:
+        """Forward function for prediction.
 
+        Args:
+            inputs (Tuple[Tensor]): List of multi-level img features.
+            batch_img_metas (dict): List Image info where each dict may also
+                contain: 'img_shape', 'scale_factor', 'flip', 'img_path',
+                'ori_shape', and 'pad_shape'.
+                For details on the values of these keys see
+                `mmseg/datasets/pipelines/formatting.py:PackSegInputs`.
+            test_cfg (dict): The testing config.
+
+        Returns:
+            Tensor: Outputs segmentation logits map.
+        """
+        seg_logits, seg_logits_foreground = self.forward(inputs)
+
+        return self.predict_by_feat(seg_logits, batch_img_metas)
+
+    def _stack_batch_gt(self, batch_data_samples: SampleList) -> Tensor:
+        gt_semantic_segs = [
+            data_sample.gt_sem_seg.data for data_sample in batch_data_samples
+        ]
+        return torch.stack(gt_semantic_segs, dim=0)
+    def loss_by_feat(self, seg_logits: Tensor, seg_logits_foreground: Tensor,
+                     batch_data_samples: SampleList) -> dict:
+        """Compute segmentation loss.
+
+        Args:
+            seg_logits (Tensor): The output from decode head forward function.
+            batch_data_samples (List[:obj:`SegDataSample`]): The seg
+                data samples. It usually includes information such
+                as `metainfo` and `gt_sem_seg`.
+
+        Returns:
+            dict[str, Tensor]: a dictionary of loss components
+        """
+
+        seg_label = self._stack_batch_gt(batch_data_samples)
+        
+        
+        loss = dict()
+        seg_logits = resize(
+            input=seg_logits,
+            size=seg_label.shape[2:],
+            mode='bilinear',
+            align_corners=self.align_corners)
+        seg_logits_foreground = resize(
+            input=seg_logits_foreground,
+            size=seg_label.shape[2:],
+            mode='bilinear',
+            align_corners=self.align_corners)
+        if self.sampler is not None:
+            seg_weight = self.sampler.sample(seg_logits, seg_label)
+        else:
+            seg_weight = None
+        seg_label = seg_label.squeeze(1)
+        seg_label_foreground = seg_label.clone()
+        for item in self.background_index:
+            seg_label_foreground[seg_label_foreground==item] = 256
+        for item in self.foreground_index:
+            seg_label_foreground[seg_label_foreground==item] = 1
+        seg_label_foreground[seg_label_foreground==256] = 0
+        if not isinstance(self.loss_decode, nn.ModuleList):
+            losses_decode = [self.loss_decode]
+        else:
+            losses_decode = self.loss_decode
+        # joint calculate loss start
+        softmax = nn.Softmax(dim=1)
+        seg_logits_foreground =softmax(seg_logits_foreground)
+        seg_logits_clone = seg_logits.clone()
+        for item in self.background_index:
+            for i in range(seg_logits.shape[0]):
+                seg_logits[i,item,:,:] = seg_logits_clone[i,item,:,:]*seg_logits_foreground[i,0,:,:]
+        for item in self.foreground_index:
+            for i in range(seg_logits.shape[0]):
+                seg_logits[i,item,:,:] = seg_logits_clone[i,item,:,:]*seg_logits_foreground[i,1,:,:]
+        # joint calculate loss end
+        # gai
+        loss[losses_decode[0].loss_name] = losses_decode[0](
+                seg_logits,
+                seg_label,
+                weight=seg_weight,
+                ignore_index=self.ignore_index)
+        # one loss
+        # loss[losses_decode[1].loss_name] = losses_decode[1](
+        #         seg_logits_foreground,
+        #         seg_label_foreground,
+        #         weight=seg_weight,
+        #         ignore_index=self.ignore_index)
+        # gai
+        loss['acc_seg'] = accuracy(
+            seg_logits, seg_label, ignore_index=self.ignore_index)
+        return loss
+
+    def loss(self, inputs: Tuple[Tensor], batch_data_samples: SampleList,
+             train_cfg: ConfigType) -> dict:
+        """Forward function for training.
+
+        Args:
+            inputs (Tuple[Tensor]): List of multi-level img features.
+            batch_data_samples (list[:obj:`SegDataSample`]): The seg
+                data samples. It usually includes information such
+                as `img_metas` or `gt_semantic_seg`.
+            train_cfg (dict): The training config.
+
+        Returns:
+            dict[str, Tensor]: a dictionary of loss components
+        """
+        seg_logits, coarse_foreground = self.forward(inputs)
+        losses = self.loss_by_feat(seg_logits, coarse_foreground, batch_data_samples)
+        return losses
         
         
     def forward(self, inputs):
@@ -312,11 +428,14 @@ class Cascade_Decode(BaseDecodeHead):
         # apply a conv block to align feature map
         output = self.align(x)
         output = self.cls_seg(output)
-        return output
+        return output, coarse_foreground
+        # batch_size 为4时
+        # coarse_foreground.shape = [4,2,75,75]
+        # output.shape = [4,4,75,75]
         
 # if __name__ == "__main__":
 #     ham_norm_cfg = dict(type='GN', num_groups=32, requires_grad=True)        
-#     decode = Cascade_Decode(in_channels=[128, 320, 512],
+#     decode = Cascade_Decode_test(in_channels=[128, 320, 512],
 #         in_index=[1, 2, 3],
 #         channels=1024,
 #         ham_channels=1024,
@@ -335,7 +454,7 @@ class Cascade_Decode(BaseDecodeHead):
 #             rand_init=True))
 #     q = torch.rand((4,64,256, 256))
 #     a = torch.rand((4,128,128, 128))
-#     b = torch.rand((1,320,64, 64))
-#     c = torch.rand((1,512,32, 32))
+#     b = torch.rand((4,320,64, 64))
+#     c = torch.rand((4,512,32, 32))
 #     input = [q,a,b,c]
 #     out = decode.forward(input)
