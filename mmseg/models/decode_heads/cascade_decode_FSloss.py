@@ -360,6 +360,7 @@ class Cascade_Decode_FSloss(BaseDecodeHead):
         softmax = nn.Softmax(dim=1)
         seg_logits_foreground =softmax(seg_logits_foreground)
         seg_logits_clone = seg_logits.clone()
+        seg_logits_clone.detach()
         for item in self.background_index:
             for i in range(seg_logits.shape[0]):
                 seg_logits[i,item,:,:] = seg_logits_clone[i,item,:,:]*seg_logits_foreground[i,0,:,:]

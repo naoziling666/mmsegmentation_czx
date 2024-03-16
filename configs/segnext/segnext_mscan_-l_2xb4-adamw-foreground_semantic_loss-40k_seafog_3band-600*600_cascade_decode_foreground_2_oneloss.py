@@ -47,7 +47,7 @@ model = dict(
         num_classes=4,
         norm_cfg=ham_norm_cfg,
         align_corners=False,
-        loss_decode=[dict(type='FocalLoss', use_sigmoid=True, loss_weight=500.0, class_weight=[0.2, 0.2, 0.4, 0.2])],
+        loss_decode=[dict(type='FocalLoss_ohem', use_sigmoid=True, loss_weight=500.0, gamma=2.0, class_weight=[0.2, 0.2, 0.4, 0.2],keep_loss_num_ratio=0.7)],
         ham_kwargs=dict(
             MD_S=1,
             MD_R=16,
