@@ -356,31 +356,44 @@ class Cascade_Decode_FSloss(BaseDecodeHead):
             losses_decode = [self.loss_decode]
         else:
             losses_decode = self.loss_decode
+        seg_logits_foreground_ = seg_logits_foreground.clone()
+        seg_logits_foreground_.detach()
         # joint calculate loss start
         softmax = nn.Softmax(dim=1)
-        seg_logits_foreground =softmax(seg_logits_foreground)
-        seg_logits_clone = seg_logits.clone()
-        seg_logits_clone.detach()
+        seg_logits_foreground_ =softmax(seg_logits_foreground_)
+        # seg_logits_clone = seg_logits.clone()
+        # seg_logits_clone.detach()
+        seg_logits_final = seg_logits.clone()
         for item in self.background_index:
             for i in range(seg_logits.shape[0]):
-                seg_logits[i,item,:,:] = seg_logits_clone[i,item,:,:]*seg_logits_foreground[i,0,:,:]
+                seg_logits_final[i,item,:,:] = seg_logits[i,item,:,:]*seg_logits_foreground_[i,0,:,:]
         for item in self.foreground_index:
             for i in range(seg_logits.shape[0]):
-                seg_logits[i,item,:,:] = seg_logits_clone[i,item,:,:]*seg_logits_foreground[i,1,:,:]
+                seg_logits_final[i,item,:,:] = seg_logits[i,item,:,:]*seg_logits_foreground_[i,1,:,:]
         # joint calculate loss end
-        # gai
-        loss[losses_decode[0].loss_name] = losses_decode[0](
-                seg_logits,
-                seg_label,
-                weight=seg_weight,
-                ignore_index=self.ignore_index)
-        # one loss
+        # one loss start
+        for loss_decode in losses_decode:
+            if loss_decode.loss_name not in loss:
+                loss[loss_decode.loss_name] = loss_decode(
+                    seg_logits,
+                    seg_label)
+            else:
+                loss[loss_decode.loss_name] += loss_decode(
+                    seg_logits,
+                    seg_label)
+        # one loss end
+        # # two loss start
+        # loss[losses_decode[0].loss_name] = losses_decode[0](
+        #         seg_logits,
+        #         seg_label,
+        #         weight=seg_weight,
+        #         ignore_index=self.ignore_index)
         # loss[losses_decode[1].loss_name] = losses_decode[1](
         #         seg_logits_foreground,
         #         seg_label_foreground,
         #         weight=seg_weight,
         #         ignore_index=self.ignore_index)
-        # gai
+        # # two loss end
         loss['acc_seg'] = accuracy(
             seg_logits, seg_label, ignore_index=self.ignore_index)
         return loss

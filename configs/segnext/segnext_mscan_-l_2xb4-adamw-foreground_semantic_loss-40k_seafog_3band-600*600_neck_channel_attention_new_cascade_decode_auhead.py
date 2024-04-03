@@ -3,13 +3,13 @@ _base_ = [
     '../_base_/datasets/seafog_3band.py'
 ]
 # model settings
-checkpoint_file = 'https://download.openmmlab.com/mmsegmentation/v0.5/pretrain/segnext/mscan_t_20230227-119e8c9f.pth'  # noqa
+# checkpoint_file = 'https://download.openmmlab.com/mmsegmentation/v0.5/pretrain/segnext/mscan_t_20230227-119e8c9f.pth'  # noqa
 ham_norm_cfg = dict(type='GN', num_groups=32, requires_grad=True)
 data_preprocessor = dict(
     type='SegDataPreProcessor',
     mean=[123.675, 116.28, 103.53],
     std=[58.395, 57.12, 57.375],
-    bgr_to_rgb=True,
+    bgr_to_rgb=False,
     pad_val=0,
     seg_pad_val=255,
     size=(600, 600),
@@ -46,8 +46,7 @@ model = dict(
         num_classes=4,
         norm_cfg=ham_norm_cfg,
         align_corners=False,
-        loss_decode=[dict(type='FocalLoss', use_sigmoid=True, loss_weight=250.0, class_weight=[0.15, 0.15, 0.6, 0.1]),
-                     dict(type='CrossEntropyLoss', use_sigmoid=False, loss_weight=3.0)],
+        loss_decode=[dict(type='FocalLoss', use_sigmoid=True, loss_weight=1.0, class_weight=[0.2, 0.2, 0.4, 0.2])],
         ham_kwargs=dict(
             MD_S=1,
             MD_R=16,
@@ -63,15 +62,15 @@ model = dict(
         num_classes=4,
         input_transform = 'multiple_select',
         loss_decode=dict(
-            type='FocalLoss', use_sigmoid=True, loss_weight=0.6,class_weight=[0.15, 0.15, 0.6, 0.1])),
+            type='FocalLoss', use_sigmoid=True, loss_weight=0.6)),
     # model training and testing settings
     train_cfg=dict(),
     test_cfg=dict(mode='whole'))
 
 # dataset settings
 train_dataloader = dict(
-    batch_size=6,
-    num_workers=6,)
+    batch_size=4,
+    num_workers=4,)
 # optimizer
 optim_wrapper = dict(
     _delete_=True,

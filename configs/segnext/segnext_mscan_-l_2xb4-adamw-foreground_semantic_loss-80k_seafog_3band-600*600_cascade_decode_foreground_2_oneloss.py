@@ -31,10 +31,9 @@ model = dict(
         attention_kernel_paddings=[2, [0, 3], [0, 5], [0, 10]],
         act_cfg=dict(type='GELU'),
         norm_cfg=dict(type='BN', requires_grad=True)),
-    # neck=dict(
-    #     type='SceneRelation',
-    #     in_channels=512,
-    #     channel_list=[64, 128, 320, 512]),
+    neck=dict(
+        type='ChannelAttention',
+        channel_list = [64, 128, 320, 512]),
     decode_head=dict(
         type='Cascade_Decode_FSloss',
         in_channels=[128, 320, 512],
@@ -47,7 +46,7 @@ model = dict(
         num_classes=4,
         norm_cfg=ham_norm_cfg,
         align_corners=False,
-        loss_decode=[dict(type='FocalLoss_ohem', use_sigmoid=True, loss_weight=500.0, gamma=1.5, class_weight=[0.2, 0.2, 0.4, 0.2])],
+        loss_decode=[dict(type='FocalLoss_ohem', use_sigmoid=True, loss_weight=5.0, gamma=2.0, class_weight=[0.15, 0.15, 0.55, 0.15],keep_loss_num_ratio=1)],
         ham_kwargs=dict(
             MD_S=1,
             MD_R=16,
@@ -55,15 +54,15 @@ model = dict(
             eval_steps=7,
             inv_t=100,
             rand_init=True)),
-    # auxiliary_head=dict(
-    #     type='AssymetricDecoder',
-    #     in_channels=[64, 128, 320, 512],
-    #     in_index=[0, 1, 2, 3],
-    #     channels=256,
-    #     num_classes=4,
-    #     input_transform = 'multiple_select',
-    #     loss_decode=dict(
-    #         type='FocalLoss', use_sigmoid=True, loss_weight=0.6)),
+    auxiliary_head=dict(
+        type='AssymetricDecoder',
+        in_channels=[64, 128, 320, 512],
+        in_index=[0, 1, 2, 3],
+        channels=256,
+        num_classes=4,
+        input_transform = 'multiple_select',
+        loss_decode=dict(
+            type='FocalLoss', use_sigmoid=True, loss_weight=0.6, class_weight=[0.15, 0.15, 0.55, 0.15])),
     # model training and testing settings
     train_cfg=dict(),
     test_cfg=dict(mode='whole'))
@@ -72,12 +71,13 @@ model = dict(
 train_dataloader = dict(
     batch_size=6,
     num_workers=6,)
+
 # optimizer
 optim_wrapper = dict(
     _delete_=True,
     type='OptimWrapper',
     optimizer=dict(
-        type='AdamW', lr=0.0006, betas=(0.9, 0.999), weight_decay=0.01),
+        type='AdamW', lr=0.001, betas=(0.9, 0.999), weight_decay=0.01),
     paramwise_cfg=dict(
         custom_keys={
             'pos_block': dict(decay_mult=0.),
@@ -87,11 +87,11 @@ optim_wrapper = dict(
 
 param_scheduler = [
     dict(
-        type='LinearLR', start_factor=3e-6, by_epoch=False, begin=0, end=1500),
+        type='LinearLR', start_factor=3e-4, by_epoch=False, begin=0, end=5000),
     dict(
         type='PolyLR',
         power=1.0,
-        begin=3000,
+        begin=6000,
         end=80000,
         eta_min=0.0,
         by_epoch=False,

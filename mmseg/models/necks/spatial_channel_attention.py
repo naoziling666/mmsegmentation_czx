@@ -27,30 +27,36 @@ import copy
 # 在mmseg新加组件的时候，在model中的层要定义在具体组件里面
 # 不可以定义在模型组件之外的函数中，负责会导致模型的参数在不同的device
 @MODELS.register_module()
-class ChannelAttention(nn.Module):
+class ChannelAttention_Spatial(nn.Module):
     def __init__(self, channel_list):
-        super(ChannelAttention, self).__init__()
+        super(ChannelAttention_Spatial, self).__init__()
         self.channel_list = channel_list
-        self.pooling = nn.AdaptiveAvgPool2d((1,1))
+        self.pooling = nn.AdaptiveAvgPool2d((10,10))
         self.apply_attention = nn.ModuleList()
         for channel in channel_list:
-            self.apply_attention.append(nn.Sequential(
-                    nn.Linear(channel, int(channel/2)),
+            self.apply_attention.append(
+                nn.Sequential(
+                    nn.Conv2d(channel, int(channel/2), kernel_size=3,padding=1),
                     nn.ReLU(),
-                    nn.Linear(int(channel/2), channel)))
+                    nn.Conv2d(int(channel/2), channel, kernel_size=3, padding=1)))
+                    # nn.Linear(channel, int(channel/2)),
+                    # nn.ReLU(),
+                    # nn.Linear(int(channel/2), channel),))
         
 
     def forward(self, inputs:list):
         outputs = []
         for i in range(len(inputs)):
             feature_pooling = self.pooling(inputs[i])
-            feature_squeeze = feature_pooling.squeeze(3).squeeze(2)
+            # feature_squeeze = feature_pooling.squeeze(3).squeeze(2)
             # 比如定义的全连接层输入和输出为64，那么这个全连接层就是对应的是一个64*64的矩阵
             # 所以可以用任意batch_size的特征去做，比如shape为(4,64)，其中batch_size为4，
             # 他就对应的是一个4*64的矩阵
-            feature_fc = self.apply_attention[i](feature_squeeze)
-            update_feature = torch.mul(inputs[i], feature_fc.unsqueeze(2).unsqueeze(3))
-            outputs.append(update_feature)
+            weight = self.apply_attention[i](feature_pooling)
+            weight = nn.functional.interpolate(weight,(inputs[i].shape[2:]))
+            outputs.append(torch.mul(inputs[i], weight)+inputs[i])
+        #     update_feature = torch.mul(inputs[i], feature_fc.unsqueeze(2).unsqueeze(3))
+        #     outputs.append(update_feature)
 
         return outputs
             
@@ -65,7 +71,7 @@ class ChannelAttention(nn.Module):
             
             
             
-# # some testing code           
+# some testing code           
 # if __name__ == "__main__":
 #     x = torch.rand((2,64,32,32))
 #     y = torch.rand((2,128,16,16))

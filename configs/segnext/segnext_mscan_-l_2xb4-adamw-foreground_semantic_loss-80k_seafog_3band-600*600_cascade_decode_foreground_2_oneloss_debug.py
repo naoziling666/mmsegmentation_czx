@@ -1,5 +1,5 @@
 _base_ = [
-    '../_base_/default_runtime.py', '../_base_/schedules/schedule_40k.py',
+    '../_base_/default_runtime.py', '../_base_/schedules/schedule_80k.py',
     '../_base_/datasets/seafog_3band.py'
 ]
 # model settings
@@ -12,7 +12,7 @@ data_preprocessor = dict(
     bgr_to_rgb=False,
     pad_val=0,
     seg_pad_val=255,
-    size=(512, 512),
+    size=(600, 600),
     test_cfg=dict(size_divisor=32))
 model = dict(
     type='EncoderDecoder',
@@ -27,26 +27,29 @@ model = dict(
         drop_rate=0.0,
         drop_path_rate=0.3,
         depths=[3, 5, 27, 3],
-        attention_kernel_sizes=[5, [7, 7], [11, 11], [21, 21]],
-        attention_kernel_paddings=[2, [3, 3], [5, 5], [10, 10]],
+        attention_kernel_sizes=[5, [1, 7], [1, 11], [1, 21]],
+        attention_kernel_paddings=[2, [0, 3], [0, 5], [0, 10]],
         act_cfg=dict(type='GELU'),
         norm_cfg=dict(type='BN', requires_grad=True)),
     # neck=dict(
     #     type='SceneRelation',
     #     in_channels=512,
-    #     channel_list=[64, 128, 320, 512]),c
+    #     channel_list=[64, 128, 320, 512]),
     decode_head=dict(
-        type='LightHamHead',
+        type='Cascade_Decode_FSloss',
         in_channels=[128, 320, 512],
         in_index=[1, 2, 3],
         channels=1024,
         ham_channels=1024,
+        foreground_index = [2],
+        background_index = [0,1,3],
         dropout_ratio=0.1,
-        num_classes=5,
+        num_classes=4,
         norm_cfg=ham_norm_cfg,
         align_corners=False,
-        loss_decode=dict(
-            type='FocalLoss', use_sigmoid=True, loss_weight=1.0),
+        # loss_decode=[dict(type='Banlanced_Softmax', loss_weight=1.0)],
+        loss_decode=dict(type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0),
+        # loss_decode=[dict(type='OhemCrossEntropy',loss_weight=1.0, class_weight=[0.2, 0.2, 0.4, 0.2])],
         ham_kwargs=dict(
             MD_S=1,
             MD_R=16,
@@ -59,7 +62,7 @@ model = dict(
     #     in_channels=[64, 128, 320, 512],
     #     in_index=[0, 1, 2, 3],
     #     channels=256,
-    #     num_classes=5,
+    #     num_classes=4,
     #     input_transform = 'multiple_select',
     #     loss_decode=dict(
     #         type='FocalLoss', use_sigmoid=True, loss_weight=0.6)),
@@ -69,14 +72,14 @@ model = dict(
 
 # dataset settings
 train_dataloader = dict(
-    batch_size=6,
-    num_workers=6,)
+    batch_size=2,
+    num_workers=2,)
 # optimizer
 optim_wrapper = dict(
     _delete_=True,
     type='OptimWrapper',
     optimizer=dict(
-        type='AdamW', lr=0.00006, betas=(0.9, 0.999), weight_decay=0.01),
+        type='AdamW', lr=0.001, betas=(0.9, 0.999), weight_decay=0.01),
     paramwise_cfg=dict(
         custom_keys={
             'pos_block': dict(decay_mult=0.),
@@ -86,12 +89,12 @@ optim_wrapper = dict(
 
 param_scheduler = [
     dict(
-        type='LinearLR', start_factor=1e-6, by_epoch=False, begin=0, end=1500),
+        type='LinearLR', start_factor=3e-6, by_epoch=False, begin=0, end=3000),
     dict(
         type='PolyLR',
         power=1.0,
-        begin=1500,
-        end=40000,
+        begin=5000,
+        end=80000,
         eta_min=0.0,
         by_epoch=False,
     )

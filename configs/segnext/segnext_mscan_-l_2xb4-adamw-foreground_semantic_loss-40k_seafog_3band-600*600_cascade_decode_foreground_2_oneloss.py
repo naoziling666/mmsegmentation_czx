@@ -1,5 +1,5 @@
 _base_ = [
-    '../_base_/default_runtime.py', '../_base_/schedules/schedule_80k.py',
+    '../_base_/default_runtime.py', '../_base_/schedules/schedule_40k.py',
     '../_base_/datasets/seafog_3band.py'
 ]
 # model settings
@@ -47,7 +47,7 @@ model = dict(
         num_classes=4,
         norm_cfg=ham_norm_cfg,
         align_corners=False,
-        loss_decode=[dict(type='FocalLoss_ohem', use_sigmoid=True, loss_weight=500.0, gamma=2.0, class_weight=[0.2, 0.2, 0.4, 0.2],keep_loss_num_ratio=0.7)],
+        loss_decode=[dict(type='FocalLoss_ohem', use_sigmoid=True, loss_weight=500.0, gamma=2.0, class_weight=[0.2, 0.2, 0.4, 0.2],keep_loss_num_ratio=1)],
         ham_kwargs=dict(
             MD_S=1,
             MD_R=16,
@@ -70,8 +70,8 @@ model = dict(
 
 # dataset settings
 train_dataloader = dict(
-    batch_size=6,
-    num_workers=6,)
+    batch_size=4,
+    num_workers=4,)
 # optimizer
 optim_wrapper = dict(
     _delete_=True,
@@ -87,19 +87,13 @@ optim_wrapper = dict(
 
 param_scheduler = [
     dict(
-        type='LinearLR', start_factor=3e-6, by_epoch=False, begin=0, end=1500),
+        type='LinearLR', start_factor=1e-6, by_epoch=False, begin=0, end=1500),
     dict(
         type='PolyLR',
         power=1.0,
-        begin=3000,
-        end=80000,
+        begin=1500,
+        end=40000,
         eta_min=0.0,
         by_epoch=False,
     )
 ]
-
-
-
-# model_wrapper_cfg = dict(
-#                 find_unused_parameters=True
-#             )

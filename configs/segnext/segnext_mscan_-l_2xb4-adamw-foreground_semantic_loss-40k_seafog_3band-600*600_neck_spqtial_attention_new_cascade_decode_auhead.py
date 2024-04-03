@@ -32,7 +32,7 @@ model = dict(
         act_cfg=dict(type='GELU'),
         norm_cfg=dict(type='BN', requires_grad=True)),
     neck=dict(
-        type='ChannelAttention',
+        type='ChannelAttention_Spatial',
         channel_list = [64, 128, 320, 512]),
     decode_head=dict(
         type='Cascade_Decode_FSloss',
@@ -46,8 +46,7 @@ model = dict(
         num_classes=4,
         norm_cfg=ham_norm_cfg,
         align_corners=False,
-        loss_decode=[dict(type='FocalLoss', use_sigmoid=True, loss_weight=100.0, class_weight=[0.15, 0.15, 0.6, 0.1]),
-                     dict(type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0)],
+        loss_decode=[dict(type='FocalLoss', use_sigmoid=True, loss_weight=1.0, class_weight=[0.2, 0.2, 0.4, 0.2])],
         ham_kwargs=dict(
             MD_S=1,
             MD_R=16,

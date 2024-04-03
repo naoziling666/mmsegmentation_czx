@@ -1,5 +1,5 @@
 _base_ = [
-    '../_base_/default_runtime.py', '../_base_/schedules/schedule_40k.py',
+    '../_base_/default_runtime.py', '../_base_/schedules/schedule_80k.py',
     '../_base_/datasets/seafog_3band.py'
 ]
 # model settings
@@ -12,7 +12,7 @@ data_preprocessor = dict(
     bgr_to_rgb=False,
     pad_val=0,
     seg_pad_val=255,
-    size=(512, 512),
+    size=(600, 600),
     test_cfg=dict(size_divisor=32))
 model = dict(
     type='EncoderDecoder',
@@ -31,80 +31,54 @@ model = dict(
         attention_kernel_paddings=[2, [0, 3], [0, 5], [0, 10]],
         act_cfg=dict(type='GELU'),
         norm_cfg=dict(type='BN', requires_grad=True)),
-    # neck=dict(
-    #     type='SceneRelation',
-    #     in_channels=512,
-    #     channel_list=[64, 128, 320, 512]),
+    neck=dict(
+        type='ChannelAttention',
+        channel_list = [64, 128, 320, 512]),
     decode_head=dict(
-        type='DualDecode',
-        num_classes = 5,
-        foreground_index = [1,2,3],
-        align_corners=False,
-        decode_bi=dict(
-            type='LightHamHead',
-            in_channels=[128, 320, 512],
-            in_index=[1, 2, 3],
-            channels=1024,
-            ham_channels=1024,
-            dropout_ratio=0.1,
-            num_classes=1,
-            norm_cfg=ham_norm_cfg,
-            align_corners=False,
-            ham_kwargs=dict(
-                MD_S=1,
-                MD_R=16,
-                train_steps=6,
-                eval_steps=7,
-                inv_t=100,
-                rand_init=True)
-        ),
-        decode_cls=dict(
-            type='LightHamHead',
-            in_channels=[128, 320, 512],
-            in_index=[1, 2, 3],
-            channels=1024,
-            ham_channels=1024,
-            dropout_ratio=0.1,
-            num_classes=5,
-            norm_cfg=ham_norm_cfg,
-            align_corners=False,
-            ham_kwargs=dict(
-                MD_S=1,
-                MD_R=16,
-                train_steps=6,
-                eval_steps=7,
-                inv_t=100,
-                rand_init=True)
-        ),
+        type='Cascade_Decode_FSloss',
         in_channels=[128, 320, 512],
         in_index=[1, 2, 3],
         channels=1024,
-        loss_decode=dict(
-                type='FocalLoss', use_sigmoid=True, loss_weight=1.0)),
-
+        ham_channels=1024,
+        foreground_index = [1,2],
+        background_index = [0,3],
+        dropout_ratio=0.1,
+        num_classes=4,
+        norm_cfg=ham_norm_cfg,
+        align_corners=False,
+        loss_decode=[dict(type='FocalLoss_ohem', use_sigmoid=True, loss_weight=20.0, gamma=2.0, class_weight=[0.15, 0.15, 0.55, 0.15],keep_loss_num_ratio=1),
+                     dict(type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0, class_weight=[0.2, 0.8])],
+        ham_kwargs=dict(
+            MD_S=1,
+            MD_R=16,
+            train_steps=6,
+            eval_steps=7,
+            inv_t=100,
+            rand_init=True)),
     # auxiliary_head=dict(
     #     type='AssymetricDecoder',
     #     in_channels=[64, 128, 320, 512],
     #     in_index=[0, 1, 2, 3],
     #     channels=256,
-    #     num_classes=5,
+    #     num_classes=4,
     #     input_transform = 'multiple_select',
     #     loss_decode=dict(
-    #         type='FocalLoss', use_sigmoid=True, loss_weight=0.6)),
+    #         type='FocalLoss', use_sigmoid=True, loss_weight=0.6, class_weight=[0.15, 0.15, 0.55, 0.15])),
     # model training and testing settings
     train_cfg=dict(),
     test_cfg=dict(mode='whole'))
 
 # dataset settings
 train_dataloader = dict(
-    batch_size=6,
-    num_workers=6,)
+    batch_size=4,
+    num_workers=4,)
+
 # optimizer
 optim_wrapper = dict(
     _delete_=True,
     type='OptimWrapper',
     optimizer=dict(
-        type='AdamW', lr=0.00006, betas=(0.9, 0.999), weight_decay=0.01),
+        type='AdamW', lr=0.001, betas=(0.9, 0.999), weight_decay=0.01),
     paramwise_cfg=dict(
         custom_keys={
             'pos_block': dict(decay_mult=0.),
@@ -114,12 +88,12 @@ optim_wrapper = dict(
 
 param_scheduler = [
     dict(
-        type='LinearLR', start_factor=1e-6, by_epoch=False, begin=0, end=1500),
+        type='LinearLR', start_factor=3e-4, by_epoch=False, begin=0, end=5000),
     dict(
         type='PolyLR',
         power=1.0,
-        begin=1500,
-        end=40000,
+        begin=6000,
+        end=80000,
         eta_min=0.0,
         by_epoch=False,
     )
@@ -127,6 +101,6 @@ param_scheduler = [
 
 
 
-# model_wrapper_cfg = dict(
-#                 find_unused_parameters=True
-#             )
+model_wrapper_cfg = dict(
+                find_unused_parameters=True
+            )

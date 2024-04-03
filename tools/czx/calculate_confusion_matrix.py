@@ -46,7 +46,7 @@ def calculate_confusion_matrix_from_pkl(pkl_path, num_classes=4):
 
 def plot_confusion_matrix(confusion_matrix,
                           name,
-                          labels=['fog', 'cloud', 'cloud_fog', 'ocean'],
+                          labels=['land','fog', 'cloud', 'cloud_fog', 'ocean'],
                           save_dir='/home/ps/CZX/mmsegmentation_czx/work_dirs/infer_600_600/confusion_matrix',
                           show=True,
                           title='Normalized Confusion Matrix',

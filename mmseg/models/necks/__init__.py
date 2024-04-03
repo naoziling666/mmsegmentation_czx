@@ -7,8 +7,8 @@ from .mla_neck import MLANeck
 from .multilevel_neck import MultiLevelNeck
 from .foreground_relation import SceneRelation
 from .channel_attention import ChannelAttention
-
+from .spatial_channel_attention import ChannelAttention_Spatial
 __all__ = [
     'FPN', 'MultiLevelNeck', 'MLANeck', 'ICNeck', 'JPU', 'Feature2Pyramid',
-    'SceneRelation', 'ChannelAttention'
+    'SceneRelation', 'ChannelAttention','ChannelAttention_Spatial'
 ]
