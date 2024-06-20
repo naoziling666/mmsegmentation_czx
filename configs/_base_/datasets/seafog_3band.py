@@ -51,7 +51,7 @@ train_dataloader = dict(
             img_path='crop_image_3band/train', seg_map_path='crop_mask/train'),
         pipeline=train_pipeline))
 val_dataloader = dict(
-    batch_size=1,
+    batch_size=4,
     num_workers=4,
     persistent_workers=True,
     sampler=dict(type='DefaultSampler', shuffle=False),

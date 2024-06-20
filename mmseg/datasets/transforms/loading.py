@@ -11,7 +11,7 @@ from mmcv.transforms import LoadImageFromFile
 
 from mmseg.registry import TRANSFORMS
 from mmseg.utils import datafrombytes
-
+import os
 try:
     from osgeo import gdal
 except ImportError:
@@ -132,6 +132,125 @@ class LoadAnnotations(MMCV_LoadAnnotations):
         repr_str += f"imdecode_backend='{self.imdecode_backend}', "
         repr_str += f'backend_args={self.backend_args})'
         return repr_str
+
+
+
+@TRANSFORMS.register_module()
+class LoadImageFromNpyFile_Train(BaseTransform):
+    """Load an image from npy file.
+
+    Required Keys:
+
+    - img_path
+
+    Modified Keys:
+
+    - img
+    - img_shape
+    - ori_shape
+
+    Args:
+        to_float32 (bool): Whether to convert the loaded image to a float32
+            numpy array. If set to False, the loaded image is an uint8 array.
+            Defaults to False.
+        color_type (str): The flag argument for :func:`mmcv.imfrombytes`.
+            Defaults to 'color'.
+        imdecode_backend (str): The image decoding backend type. The backend
+            argument for :func:`mmcv.imfrombytes`.
+            See :func:`mmcv.imfrombytes` for details.
+            Defaults to 'cv2'.
+        file_client_args (dict, optional): Arguments to instantiate a
+            FileClient. See :class:`mmengine.fileio.FileClient` for details.
+            Defaults to None. It will be deprecated in future. Please use
+            ``backend_args`` instead.
+            Deprecated in version 2.0.0rc4.
+        ignore_empty (bool): Whether to allow loading empty image or file path
+            not existent. Defaults to False.
+        backend_args (dict, optional): Instantiates the corresponding file
+            backend. It may contain `backend` key to specify the file
+            backend. If it contains, the file backend corresponding to this
+            value will be used and initialized with the remaining values,
+            otherwise the corresponding file backend will be selected
+            based on the prefix of the file path. Defaults to None.
+            New in version 2.0.0rc4.
+    """
+
+    def __init__(self,
+                 to_float32: bool = False,
+                 color_type: str = 'color',
+                 imdecode_backend: str = 'cv2',
+                 file_client_args: Optional[dict] = None,
+                 ignore_empty: bool = False,
+                 *,
+                 backend_args: Optional[dict] = None) -> None:
+        self.ignore_empty = ignore_empty
+        self.to_float32 = to_float32
+        self.color_type = color_type
+        self.imdecode_backend = imdecode_backend
+
+        self.file_client_args: Optional[dict] = None
+        self.backend_args: Optional[dict] = None
+        if file_client_args is not None:
+            warnings.warn(
+                '"file_client_args" will be deprecated in future. '
+                'Please use "backend_args" instead', DeprecationWarning)
+            if backend_args is not None:
+                raise ValueError(
+                    '"file_client_args" and "backend_args" cannot be set '
+                    'at the same time.')
+
+            self.file_client_args = file_client_args.copy()
+        if backend_args is not None:
+            self.backend_args = backend_args.copy()
+
+    def transform(self, results: dict) -> Optional[dict]:
+        """Functions to load image.
+
+        Args:
+            results (dict): Result dict from
+                :class:`mmengine.dataset.BaseDataset`.
+
+        Returns:
+            dict: The dict contains loaded image and meta information.
+        """
+        img_dir = os.listdir('/root/autodl-pub/CZX/mmsegmentation_czx/data/seafog_data/seafog_600/crop_image_3band/train')
+        img_dir = img_dir[0:116]
+
+        filename = results['img_path']
+        img = np.load(filename)
+        if not np.random.randint(4):
+            if img.shape[2]==3:
+                root = '/root/autodl-pub/CZX/mmsegmentation_czx/data/seafog_data/seafog_600/crop_image_3band/train'
+                index_random = np.random.randint(len(img_dir))
+                filename = os.path.join(root, img_dir[index_random])
+                img = img = np.load(filename)
+                png_name = img_dir[index_random].split('.')[0]+'.png'
+                results['seg_map_path'] = os.path.join('/root/autodl-pub/CZX/mmsegmentation_czx/data/seafog_data/seafog_600/crop_mask/train', png_name)
+            elif img.shape[2]==6:
+                root = '/root/autodl-pub/CZX/mmsegmentation_czx/data/seafog_data/seafog_600/crop_image_6band/train'
+                index_random = np.random.randint(len(img_dir))
+                filename = os.path.join(root, img_dir[index_random])
+                img = img = np.load(filename)
+                png_name = img_dir[index_random].split('.')[0]+'.png'
+                results['seg_map_path'] = os.path.join('/root/autodl-pub/CZX/mmsegmentation_czx/data/seafog_data/seafog_600/crop_mask/train', png_name)
+            elif img.shape[2]==16:
+                root = '/root/autodl-pub/CZX/mmsegmentation_czx/data/seafog_data/seafog_600/crop_image_16band/train'
+                index_random = np.random.randint(len(img_dir))
+                filename = os.path.join(root, img_dir[index_random])
+                img = img = np.load(filename)
+                png_name = img_dir[index_random].split('.')[0]+'.png'
+                results['seg_map_path'] = os.path.join('/root/autodl-pub/CZX/mmsegmentation_czx/data/seafog_data/seafog_600/crop_mask/train', png_name)
+        # if img.shape
+        assert img is not None, f'failed to load image: {filename}'
+        if self.to_float32:
+            img = img.astype(np.float32)
+
+        results['img'] = img
+        results['img_shape'] = img.shape[:2]
+        results['ori_shape'] = img.shape[:2]
+        return results
+    
+
 
 @TRANSFORMS.register_module()
 class LoadImageFromNpyFile(BaseTransform):

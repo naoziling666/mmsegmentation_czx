@@ -46,8 +46,7 @@ model = dict(
         num_classes=4,
         norm_cfg=ham_norm_cfg,
         align_corners=False,
-        loss_decode=[dict(type='FocalLoss_ohem', use_sigmoid=True, loss_weight=20.0, gamma=2.0, class_weight=[0.15, 0.15, 0.55, 0.15],keep_loss_num_ratio=1),
-                     dict(type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0, class_weight=[0.2, 0.8])],
+        loss_decode=[dict(type='FocalLoss_ohem', use_sigmoid=True, loss_weight=250.0, gamma=2.0, class_weight=[0.15, 0.15, 0.55, 0.15],keep_loss_num_ratio=1)],
         ham_kwargs=dict(
             MD_S=1,
             MD_R=16,

@@ -7,7 +7,7 @@ PORT=${PORT:-29501}
 MASTER_ADDR=${MASTER_ADDR:-"127.0.0.1"}
 TIME=$(date "+%Y%m%d-%H%M%S")
 CONFIG_FILE="configs/${MODEL}/${CONFIG}.py" 
-WORK_DIR="work_dirs/${CONFIG}/${TIME}"
+WORK_DIR="work_dirs/seafog/${CONFIG}/${TIME}"
 PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
 python -m torch.distributed.launch \
     --nnodes=$NNODES \

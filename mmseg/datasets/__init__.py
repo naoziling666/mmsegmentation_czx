@@ -31,6 +31,7 @@ from .seafog_6band import SeafogDataset_6band
 from .seafog_3band import SeafogDataset_3band
 from .fy4 import Fy4Dataset
 from .yhdata import YhDataset
+from .ice_snow import Ice_Snow_Dataset
 # yapf: disable
 from .transforms import (CLAHE, AdjustGamma, Albu, BioMedical3DPad,
                          BioMedical3DRandomCrop, BioMedical3DRandomFlip,
@@ -67,5 +68,5 @@ __all__ = [
     'LoadMultipleRSImageFromFile', 'LoadSingleRSImageFromFile',
     'ConcatCDInput', 'BaseCDDataset', 'DSDLSegDataset', 'BDD100KDataset','SeafogDataset',
     'seafogDataset_multiband','SeafogDataset_16band','SeafogDataset_6band','SeafogDataset_3band',
-    'Fy4Dataset','YhDataset'
+    'Fy4Dataset','YhDataset','Ice_Snow_Dataset'
 ]

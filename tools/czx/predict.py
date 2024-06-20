@@ -11,11 +11,11 @@ import warnings
 warnings.filterwarnings("ignore")
 def parse_args():
     parser = argparse.ArgumentParser(description='inferce whole image')
-    parser.add_argument('--config', help='the config path of model',default="/root/autodl-pub/CZX/mmsegmentation_czx/configs/segnext/segnext_mscan_-l_2xb4-adamw-ce_loss-40k_seafog_3band-600*600.py")
-    parser.add_argument('--checkpoint', help='the checkpoint path of model', default="/root/autodl-pub/CZX/mmsegmentation_czx/work_dirs/segnext_mscan_-l_2xb4-adamw-ce_loss-40k_seafog_3band-600*600/20240228-202142/iter_40000.pth")
+    parser.add_argument('--config', help='the config path of model',default="/root/autodl-pub/CZX/mmsegmentation_czx/work_dirs/segnext_mscan_-l_2xb4-adamw-focal_loss-40k_seafog_3band-600*600/20240303-224202/segnext_mscan_-l_2xb4-adamw-focal_loss-40k_seafog_3band-600*600.py")
+    parser.add_argument('--checkpoint', help='the checkpoint path of model', default="/root/autodl-pub/CZX/mmsegmentation_czx/work_dirs/segnext_mscan_-l_2xb4-adamw-focal_loss-40k_seafog_3band-600*600/20240303-224202/iter_40000.pth")
     parser.add_argument('--images_path', help='the path of the image that requires inference', default="/root/autodl-pub/CZX/mmsegmentation_czx/data/seafog_data/origin_images_kh_1200/val")
     parser.add_argument('--vis_label_path', help='the path of the vis_label(gt)', default="/root/autodl-pub/CZX/mmsegmentation_czx/data/seafog_data/origin_labels_kh_1200/val")
-    parser.add_argument('--vis_save_path', help='the path to save result(vis) of inference', default="/root/autodl-pub/CZX/mmsegmentation_czx/work_dirs/vis/3band_segnext_baseline")
+    parser.add_argument('--vis_save_path', help='the path to save result(vis) of inference', default="/root/autodl-pub/CZX/mmsegmentation_czx/work_dirs/vis/channel_attention")
     parser.add_argument('--mask_save_path', help='the path to save result(mask) of inference', default="/root/autodl-pub/CZX/mmsegmentation_czx/work_dirs/mask_pred/3band_segnext_baseline")
     parser.add_argument('--land_gt_path', help='the path to use the mask of land', default="/root/autodl-pub/CZX/mmsegmentation_czx/data/seafog_data/land_mask_kh_1200/val")
     
@@ -65,7 +65,7 @@ def main():
         canvas = np.zeros((h,w*2,c))
         canvas[0:h,0:w,:] = vis_label
         canvas[0:h,w:w*2,:] = vis
-        cv.imwrite(os.path.join(args.mask_save_path, img.split('.')[0]+'.png'), pred)
+        # cv.imwrite(os.path.join(args.mask_save_path, img.split('.')[0]+'.png'), pred)
         cv.imwrite(os.path.join(args.vis_save_path, img.split('.')[0]+'.png'), vis)
     end = time.time()
     print("inference single image spend {} seconds".format(end-start))

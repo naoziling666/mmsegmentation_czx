@@ -47,8 +47,8 @@ model = dict(
         num_classes=4,
         norm_cfg=ham_norm_cfg,
         align_corners=False,
-        # loss_decode=[dict(type='Banlanced_Softmax', loss_weight=1.0)],
-        loss_decode=dict(type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0),
+        loss_decode=[dict(type='Banlanced_Softmax', loss_weight=1.0)],
+        # loss_decode=dict(type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0),
         # loss_decode=[dict(type='OhemCrossEntropy',loss_weight=1.0, class_weight=[0.2, 0.2, 0.4, 0.2])],
         ham_kwargs=dict(
             MD_S=1,

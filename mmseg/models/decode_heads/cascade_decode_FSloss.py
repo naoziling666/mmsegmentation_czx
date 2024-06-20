@@ -12,7 +12,7 @@ from torch import Tensor
 from mmseg.utils import ConfigType, SampleList
 from mmseg.registry import MODELS
 from mmseg.models.losses import accuracy
-
+import numpy as np
 def resize(input,
            size=None,
            scale_factor=None,
@@ -287,7 +287,10 @@ class Cascade_Decode_FSloss(BaseDecodeHead):
             conv_cfg=self.conv_cfg,
             norm_cfg=self.norm_cfg,
             act_cfg=self.act_cfg)
-        
+
+    def compute_adjustment(self, inputs, tro):
+        B = inputs.shape[0]
+        pass
     def predict(self, inputs: Tuple[Tensor], batch_img_metas: List[dict],
                 test_cfg: ConfigType) -> Tensor:
         """Forward function for prediction.
@@ -305,6 +308,17 @@ class Cascade_Decode_FSloss(BaseDecodeHead):
             Tensor: Outputs segmentation logits map.
         """
         seg_logits, seg_logits_foreground = self.forward(inputs)
+        post_logit_adjust=True
+        if post_logit_adjust:
+            # tro_post_range = [0.25, 0.5, 0.75, 1, 1.5, 2]
+            tro = 0.115
+            frequency = np.array([0.15608681, 0.33011826, 0.03359617, 0.48019876])
+            adjustments = np.log(frequency ** tro + 1e-12)
+            adjustments = torch.tensor(adjustments).to(seg_logits.device)
+            seg_logits[:,0,:,:] -= adjustments[0]
+            seg_logits[:,1,:,:] -= adjustments[1]
+            seg_logits[:,2,:,:] -= adjustments[2]
+            seg_logits[:,3,:,:] -= adjustments[3]
 
         return self.predict_by_feat(seg_logits, batch_img_metas)
 
@@ -375,16 +389,16 @@ class Cascade_Decode_FSloss(BaseDecodeHead):
         for loss_decode in losses_decode:
             if loss_decode.loss_name not in loss:
                 loss[loss_decode.loss_name] = loss_decode(
-                    seg_logits,
+                    seg_logits_final,
                     seg_label)
             else:
                 loss[loss_decode.loss_name] += loss_decode(
-                    seg_logits,
+                    seg_logits_final,
                     seg_label)
         # one loss end
         # # two loss start
         # loss[losses_decode[0].loss_name] = losses_decode[0](
-        #         seg_logits,
+        #         seg_logits_final,
         #         seg_label,
         #         weight=seg_weight,
         #         ignore_index=self.ignore_index)

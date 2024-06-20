@@ -1,10 +1,10 @@
 # dataset settings
-dataset_type = 'SeafogDataset_multiband'
-data_root = 'data/seafog_data/seafog_multiband'
+dataset_type = 'Ice_Snow_Dataset'
+data_root = 'data/snow_ice_data'
 crop_size = (512, 512)
 train_pipeline = [
-    dict(type='LoadImageFromNpyFile'),
-    dict(type='LoadAnnotations', reduce_zero_label=True),
+    dict(type='LoadImageFromFile'),
+    dict(type='LoadAnnotations', reduce_zero_label=False),
     dict(
         type='RandomResize',
         scale=(2048, 512),
@@ -16,16 +16,16 @@ train_pipeline = [
     dict(type='PackSegInputs')
 ]
 test_pipeline = [
-    dict(type='LoadImageFromNpyFile'),
+    dict(type='LoadImageFromFile'),
     dict(type='Resize', scale=(1024, 1024), keep_ratio=True),
     # add loading annotation after ``Resize`` because ground truth
     # does not need to do resize data transform
-    dict(type='LoadAnnotations', reduce_zero_label=True),
+    dict(type='LoadAnnotations', reduce_zero_label=False),
     dict(type='PackSegInputs')
 ]
 img_ratios = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75]
 tta_pipeline = [
-    dict(type='LoadImageFromNpyFile', backend_args=None),
+    dict(type='LoadImageFromFile', backend_args=None),
     dict(
         type='TestTimeAug',
         transforms=[
@@ -51,7 +51,7 @@ train_dataloader = dict(
             img_path='image/train', seg_map_path='label/train'),
         pipeline=train_pipeline))
 val_dataloader = dict(
-    batch_size=1,
+    batch_size=4,
     num_workers=4,
     persistent_workers=True,
     sampler=dict(type='DefaultSampler', shuffle=False),

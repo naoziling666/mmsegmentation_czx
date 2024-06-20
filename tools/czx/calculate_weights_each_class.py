@@ -9,7 +9,7 @@ index = 0
 for image_path in images_list:
     img = cv.imread(os.path.join(root, image_path), flags=0)
 
-    total_num = 512*512
+    total_num = 600*600
     num_0 = np.count_nonzero(img == 0)
     num_1 = np.count_nonzero(img == 1)
     num_2 = np.count_nonzero(img == 2)

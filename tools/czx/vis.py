@@ -2,9 +2,10 @@ import os
 import cv2 as cv
 import numpy as np
 baseline_path = "/root/autodl-pub/CZX/mmsegmentation_czx/work_dirs/vis/3band_segnext_baseline"
-our_model_path = "/root/autodl-pub/CZX/mmsegmentation_czx/work_dirs/vis/3band_segnext"
+our_model_path = "/root/autodl-pub/CZX/mmsegmentation_czx/work_dirs/vis/channel_attention"
 label_path = "/root/autodl-pub/CZX/mmsegmentation_czx/data/seafog_data/origin_labels_kh_1200/val"
-save_path = "/root/autodl-pub/CZX/mmsegmentation_czx/work_dirs/vis/duibi"
+save_path = "/root/autodl-pub/CZX/mmsegmentation_czx/work_dirs/vis/duibi_ca_baseline"
+os.makedirs(save_path, exist_ok=True)
 image_list = os.listdir(baseline_path)
 for image in image_list:
     baseline_image = cv.imread(os.path.join(baseline_path, image))

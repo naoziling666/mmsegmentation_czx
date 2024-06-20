@@ -10,7 +10,7 @@ from .utils import get_class_weight, weight_reduce_loss
 
 
 @MODELS.register_module()
-class Banlanced_Softmax(nn.Module):
+class Banlanced_Softmax_binary(nn.Module):
     """CrossEntropyLoss.
 
     Args:
@@ -66,24 +66,26 @@ class Banlanced_Softmax(nn.Module):
         assert reduction_override in (None, 'none', 'mean', 'sum')
         reduction = (
             reduction_override if reduction_override else self.reduction)
-        cls_score_exp = torch.exp(cls_score)
+        label_one_hot = F.one_hot(label, num_classes=cls_score.shape[0])
+        cls_score = cls_score.permute(0,2,3,1)
+        loss = F.binary_cross_entropy_with_logits(cls_score, label_one_hot, reduction = none, ignore_index=255)
+        loss = loss.mean(dim=2)
         num_0 = torch.sum(label == 0).item()/torch.sum(label!=ignore_index).item()
         num_1 = torch.sum(label == 1).item()/torch.sum(label!=ignore_index).item()
         num_2 = torch.sum(label == 2).item()/torch.sum(label!=ignore_index).item()
         num_3 = torch.sum(label == 3).item()/torch.sum(label!=ignore_index).item()
-        bs_cls_score_exp = cls_score_exp.clone()
-        bs_cls_score_exp[:, 0, :, :] *= num_0
-        bs_cls_score_exp[:, 1, :, :] *= num_1
-        bs_cls_score_exp[:, 2, :, :] *= num_2
-        bs_cls_score_exp[:, 3, :, :] *= num_3
-        cls_score_sum = bs_cls_score_exp.sum(dim=1).unsqueeze(1)
-        bs_cls_score_exp = bs_cls_score_exp/cls_score_sum
-        valid_mask = (label != ignore_index)
-        label[label==255] = 0
-        label_one_hot = torch.nn.functional.one_hot(label)
-        loss = bs_cls_score_exp*label_one_hot.permute(0,3,1,2)
-        loss = loss.sum(dim=1)*valid_mask
-        loss[valid_mask] = -torch.log(loss[valid_mask])
+
+        loss[label==0] *= num_0
+        loss[label==1] *= num_1
+        loss[label==2] *= num_2
+        loss[label==3] *= num_3
+        # cls_score_sum = cls_score_exp.sum(dim=1).unsqueeze(1)
+        # cls_score_exp = cls_score_exp/cls_score_sum
+        # valid_mask = (label != ignore_index)
+        # label[label==255] = 0
+        # label_one_hot = torch.nn.functional.one_hot(label)
+        # loss = cls_score_exp*label_one_hot.permute(0,3,1,2)
+        # loss = loss.sum(dim=1)*valid_mask
         loss *= self.loss_weight
         loss = loss.mean()
         return loss

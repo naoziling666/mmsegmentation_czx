@@ -13,11 +13,12 @@ from .utils import reduce_loss, weight_reduce_loss, weighted_loss
 from .focal_loss_ohem import FocalLoss_ohem
 from .focal_loss_ohem_prob import FocalLoss_ohem_prob
 from .banlanced_softmax import Banlanced_Softmax
+from .eql_loss import EQL_loss
 __all__ = [
     'accuracy', 'Accuracy', 'cross_entropy', 'binary_cross_entropy',
     'mask_cross_entropy', 'CrossEntropyLoss', 'reduce_loss',
     'weight_reduce_loss', 'weighted_loss', 'LovaszLoss', 'DiceLoss',
     'FocalLoss', 'TverskyLoss', 'OhemCrossEntropy', 'BoundaryLoss',
     'HuasdorffDisstanceLoss','FocalLoss_ohem','FocalLoss_ohem_prob',
-    'Banlanced_Softmax'
+    'Banlanced_Softmax','EQL_loss'
 ]

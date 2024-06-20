@@ -12,14 +12,13 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description='MMSeg test (and eval) a model')
     parser.add_argument('--config', help='train config file path',
-                        default='/home/ps/CZX/mmsegmentation_czx/configs/segnext/yhdata_segnext_mscan_-l_2xb4-adamw-focal_loss-40k_seafog_3band-600*600_neck_channel_attention_cascade_decode.py')
+                        default='/root/autodl-pub/CZX/mmsegmentation_czx/work_dirs/segnext_mscan_-l_2xb4-adamw-foreground_semantic_loss-80k_seafog_3band-600*600_cascade_decode_foreground_1_2_oneloss/20240329-172549/segnext_mscan_-l_2xb4-adamw-foreground_semantic_loss-80k_seafog_3band-600*600_cascade_decode_foreground_1_2_oneloss.py')
     parser.add_argument('--checkpoint', help='checkpoint file',
-                        default='/home/ps/CZX/mmsegmentation_czx/work_dirs/yhdata_segnext_mscan_-l_2xb4-adamw-focal_loss-40k_seafog_3band-600*600_neck_channel_attention_cascade_decode/20231219-121542/iter_24000.pth')
+                        default='/root/autodl-pub/CZX/mmsegmentation_czx/work_dirs/segnext_mscan_-l_2xb4-adamw-foreground_semantic_loss-80k_seafog_3band-600*600_cascade_decode_foreground_1_2_oneloss/20240329-172549/iter_72000.pth')
     parser.add_argument(
         '--work-dir',
         help=('if specified, the evaluation metric results will be dumped'
-              'into the directory as json'),
-        default="/home/ps/CZX/mmsegmentation_czx/work_dirs/debug_test")
+              'into the directory as json'), default='/root/autodl-pub/CZX/mmsegmentation_czx/work_dirs/LA/tro_0.115')
     parser.add_argument(
         '--out',
         type=str,

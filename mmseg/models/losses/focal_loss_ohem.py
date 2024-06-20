@@ -102,7 +102,7 @@ def sigmoid_focal_loss(pred,
     """
     # Function.apply does not accept keyword arguments, so the decorator
     # "weighted_loss" is not applicable
-    txt_path = "/root/autodl-pub/CZX/mmsegmentation_czx/loss_focal_ohem_2_foreground_1_2_twoloss.txt"
+    txt_path = "/root/autodl-pub/CZX/mmsegmentation_czx/loss_focal_ohem_2_foreground_1_2_oneloss_change_pipeline.txt"
     global iteartion
     final_weight = torch.ones(1, pred.size(1)).type_as(pred)
     iteartion += 1 
