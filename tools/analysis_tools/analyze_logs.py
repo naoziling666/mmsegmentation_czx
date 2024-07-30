@@ -68,17 +68,17 @@ def plot_curve(log_dicts, args):
 def parse_args():
     parser = argparse.ArgumentParser(description='Analyze Json Log')
     parser.add_argument(
-        'json_logs',
+        '--json_logs',
         type=str,
-        nargs='+',
-        help='path of train log in json format')
+        help='path of train log in json format',
+        default=['/aipt/CZX/mmsegmentation_czx/work_dirs/ice_snow/20240603_141138.json'])
     parser.add_argument(
         '--keys',
         type=str,
         nargs='+',
-        default=['mIoU'],
+        default=['acc'],
         help='the metric that you want to plot')
-    parser.add_argument('--title', type=str, help='title of figure')
+    parser.add_argument('--title', type=str, help='title of figure', default=None)
     parser.add_argument(
         '--legend',
         type=str,
@@ -89,7 +89,7 @@ def parse_args():
         '--backend', type=str, default=None, help='backend of plt')
     parser.add_argument(
         '--style', type=str, default='dark', help='style of plt')
-    parser.add_argument('--out', type=str, default=None)
+    parser.add_argument('--out', type=str, default ='/aipt/CZX/mmsegmentation_czx/work_dirs/ice_snow/figure/acc_maskrcnn.pdf', help='path to save figure')
     args = parser.parse_args()
     return args
 

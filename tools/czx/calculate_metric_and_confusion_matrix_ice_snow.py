@@ -28,7 +28,7 @@ def calculate_confusion_matrix(gt_path, pred_path, num_classes, reduce_zero_labe
 def plot_confusion_matrix(confusion_matrix,
                           name,
                           labels=['background','snow', 'ice'],
-                          save_dir='/root/autodl-pub/CZX/mmsegmentation_czx/work_dirs/ice_snow/confusion_matrix/',
+                          save_dir='/aipt/CZX/mmsegmentation_czx/work_dirs/ice_snow/confusion_matrix/',
                           show=True,
                           title='Normalized Confusion Matrix',
                           color_theme='winter'):
@@ -109,19 +109,26 @@ def plot_confusion_matrix(confusion_matrix,
     if show:
         plt.show()
 
-def calculate_iou_from_confusion_matrix(hist):
+def calculate_metric_from_confusion_matrix(hist):
+    acc = np.diag(hist) / hist.sum(axis=1)
     iou = np.diag(hist) / (hist.sum(1) + hist.sum(0) - np.diag(hist))
-    return iou
+    fp = hist[0][1:].sum()/hist[0].sum()
+    return iou, acc, fp
+
+    
 
 
 if __name__ == "__main__":
     # gt_path = "/root/autodl-pub/CZX/mmsegmentation_czx/data/snow_ice_data/label/val"
-    gt_path = "/root/autodl-pub/CZX/mmsegmentation_czx/data/snow_ice_data/label/val_maskrcnn"
-    pred_path = "/root/autodl-pub/CZX/mmsegmentation_czx/work_dirs/ice_snow/pred/pred_maskrcnn"
+    gt_path = "/aipt/CZX/mmsegmentation_czx/data/snow_ice_data/label/val"
+    pred_path = "/aipt/CZX/mmsegmentation_czx/work_dirs/ice_snow/pred/pred_fcn"
     confusion_m = calculate_confusion_matrix(gt_path, pred_path, 3)
-    iou = calculate_iou_from_confusion_matrix(confusion_m)
+    iou, acc, false_positive_rate = calculate_metric_from_confusion_matrix(confusion_m)
     print("iou",iou)
     print("miou", iou.mean())
-    plot_confusion_matrix(confusion_matrix=confusion_m, name='maskrcnn.png')
+    print('acc', acc)
+    print("macc", acc.mean())
+    print("虚警率", false_positive_rate*100)
+    plot_confusion_matrix(confusion_matrix=confusion_m, name='fcn.png')
     
     

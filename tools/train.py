@@ -7,14 +7,14 @@ import sys
 from mmengine.config import Config, DictAction
 from mmengine.logging import print_log
 from mmengine.runner import Runner
-sys.path.insert(0, '/home/ps/CZX/mmsegmentation_czx')
+sys.path.insert(0, '/aipt/CZX/mmsegmentation_czx/')
 from mmseg.registry import RUNNERS
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a segmentor')
-    parser.add_argument('--config', help='train config file path',default="/root/autodl-pub/CZX/mmsegmentation_czx/configs/segnext/segnext_mscan_-l_2xb4-adamw-eql_loss-80k_seafog_3band-600*600_cascade_decode_foreground_1_2_oneloss.py")
-    parser.add_argument('--work-dir', help='the dir to save logs and models',default="/root/autodl-pub/CZX/mmsegmentation_czx/work_dirs/debug_test")
+    parser.add_argument('--config', help='train config file path',default="/aipt/CZX/mmsegmentation_czx/configs/segnext_multiband/segnext_mscan_3dconv-l_1xb4-adamw-40k_seafog_multiband9-600*600.py")
+    parser.add_argument('--work-dir', help='the dir to save logs and models',default="/aipt/CZX/mmsegmentation_czx/work_dirs/seafog_multiband/debug")
     parser.add_argument(
         '--resume',
         action='store_true',

@@ -25,10 +25,11 @@ train_cfg = dict(
     type='EpochBasedTrainLoop', max_epochs=30, val_interval=6)
 val_cfg = dict(type='ValLoop')
 test_cfg = dict(type='TestLoop')
+
 default_hooks = dict(
     timer=dict(type='IterTimerHook'),
     logger=dict(type='LoggerHook', interval=50, log_metric_by_epoch=True),
     param_scheduler=dict(type='ParamSchedulerHook'),
-    checkpoint=dict(type='CheckpointHook', by_epoch=True, interval=6, max_keep_ckpts=2),
+    checkpoint=dict(type='CheckpointHook', by_epoch=True, interval=1, max_keep_ckpts=2),
     sampler_seed=dict(type='DistSamplerSeedHook'),
     visualization=dict(type='SegVisualizationHook'))

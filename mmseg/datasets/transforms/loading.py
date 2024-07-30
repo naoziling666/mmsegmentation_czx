@@ -348,6 +348,7 @@ class LoadImageFromNpyFile(BaseTransform):
         #     else:
         #         raise e
         img = np.load(filename)
+        # img = img[:,:,0:3] # for 3band of multiband
         # in some cases, images are not read successfully, the img would be
         # `None`, refer to https://github.com/open-mmlab/mmpretrain/issues/1427
         assert img is not None, f'failed to load image: {filename}'

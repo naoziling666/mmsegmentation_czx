@@ -3,7 +3,7 @@ CONFIG=$2
 GPUS=1
 NNODES=${NNODES:-1}
 NODE_RANK=${NODE_RANK:-0}
-PORT=${PORT:-29501}
+PORT=${PORT:-29502}
 MASTER_ADDR=${MASTER_ADDR:-"127.0.0.1"}
 TIME=$(date "+%Y%m%d-%H%M%S")
 CONFIG_FILE="configs/${MODEL}/${CONFIG}.py" 
@@ -18,6 +18,7 @@ python -m torch.distributed.launch \
     $(dirname "$0")/train.py \
     --config ${CONFIG_FILE} \
     --work-dir=${WORK_DIR} \
+    --resume \
     --launcher pytorch ${@:4}
-# bash tools/dist_train_ice_snow.sh hrnet fcn_hr18_4xb4-80k_seafog-512x512
+# bash tools/dist_train_seafog_multiband.sh segnext_multiband segnext_mscan-l_1xb4-adamw-40k_seafog_multiband3-600*600
 # export CUDA_VISIBLE_DEVICES=0,1,2,3

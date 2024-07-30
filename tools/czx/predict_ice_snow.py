@@ -1,7 +1,7 @@
 import argparse
 import os
 import sys
-sys.path.insert(0,"/home/ps/CZX/mmsegmentation_czx")
+sys.path.insert(0,"/aipt/CZX/mmsegmentation_czx")
 from mmseg.apis.inference import init_model,inference_model
 import cv2 as cv
 import numpy as np
@@ -21,11 +21,11 @@ import warnings
 
 def main():
     
-    save_path = '/root/autodl-pub/CZX/mmsegmentation_czx/work_dirs/ice_snow/pred/pred_hrnet'
-    images_path = '/root/autodl-pub/CZX/mmsegmentation_czx/data/snow_ice_data/image/val'
-    labels_path = '/root/autodl-pub/CZX/mmsegmentation_czx/data/snow_ice_data/label/val'
-    config_path = '/root/autodl-pub/CZX/mmsegmentation_czx/work_dirs/ice_snow/fcn_hr48_1xb4-40k_ice_snow-512x512_ce/20240510-171443/fcn_hr48_1xb4-40k_ice_snow-512x512_ce.py'
-    checkpoint_path = '/root/autodl-pub/CZX/mmsegmentation_czx/work_dirs/ice_snow/fcn_hr48_1xb4-40k_ice_snow-512x512_ce/20240510-171443/iter_40000.pth'
+    save_path = '/aipt/CZX/mmsegmentation_czx/work_dirs/ice_snow/pred/pred_fcn'
+    images_path = '/aipt/CZX/mmsegmentation_czx/data/snow_ice_data/image/val'
+    labels_path = '/aipt/CZX/mmsegmentation_czx/data/snow_ice_data/label/val'
+    config_path = '/aipt/CZX/mmsegmentation_czx/configs/fcn/fcn_r50-d8_1xb4-40k_ice_snow-512x512.py'
+    checkpoint_path = '/aipt/CZX/mmsegmentation_czx/work_dirs/ice_snow/fcn_r50-d8_1xb4-40k_ice_snow-512x512/20240624-171324/iter_24000.pth'
     os.makedirs(save_path, exist_ok=True)
 
     colors = [[255,255,255],[0,0,255],[255, 0, 0]]
