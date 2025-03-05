@@ -11,8 +11,8 @@ import warnings
 warnings.filterwarnings("ignore")
 def parse_args():
     parser = argparse.ArgumentParser(description='inferce whole image')
-    parser.add_argument('--config', help='the config path of model',default="/root/autodl-pub/CZX/mmsegmentation_czx/work_dirs/segnext_mscan_-l_2xb4-adamw-focal_loss-40k_seafog_3band-600*600/20240303-224202/segnext_mscan_-l_2xb4-adamw-focal_loss-40k_seafog_3band-600*600.py")
-    parser.add_argument('--checkpoint', help='the checkpoint path of model', default="/root/autodl-pub/CZX/mmsegmentation_czx/work_dirs/segnext_mscan_-l_2xb4-adamw-focal_loss-40k_seafog_3band-600*600/20240303-224202/iter_40000.pth")
+    parser.add_argument('--config', help='the config path of model',default="/root/autodl-fs/mmsegmentation_czx/configs/segnext_multiband/segnext_mscan_3dconv-l_1xb4-adamw-40k_seafog_multiband9-600*600_time_query_focal.py")
+    parser.add_argument('--checkpoint', help='the checkpoint path of model', default="/root/autodl-fs/mmsegmentation_czx/work_dirs/seafog_multiband/segnext_mscan_3dconv-l_1xb4-adamw-40k_seafog_multiband9-600*600_time_query_focal/20241023-105100/iter_80000.pth")
     parser.add_argument('--images_path', help='the path of the image that requires inference', default="/root/autodl-pub/CZX/mmsegmentation_czx/data/seafog_data/origin_images_kh_1200/val")
     parser.add_argument('--vis_label_path', help='the path of the vis_label(gt)', default="/root/autodl-pub/CZX/mmsegmentation_czx/data/seafog_data/origin_labels_kh_1200/val")
     parser.add_argument('--vis_save_path', help='the path to save result(vis) of inference', default="/root/autodl-pub/CZX/mmsegmentation_czx/work_dirs/vis/channel_attention")

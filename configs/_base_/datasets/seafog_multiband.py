@@ -1,7 +1,7 @@
 # dataset settings
 dataset_type = 'SeafogDataset_multiband'
 data_root = 'data/seafog_data/seafog_multiband_600'
-crop_size = (512, 512)
+crop_size = (600, 600)
 train_pipeline = [
     dict(type='LoadImageFromNpyFile'),
     dict(type='LoadAnnotations', reduce_zero_label=True),
@@ -17,7 +17,7 @@ train_pipeline = [
 ]
 test_pipeline = [
     dict(type='LoadImageFromNpyFile'),
-    dict(type='Resize', scale=(1024, 1024), keep_ratio=True),
+    # dict(type='Resize', scale=(1024, 1024), keep_ratio=True),
     # add loading annotation after ``Resize`` because ground truth
     # does not need to do resize data transform
     dict(type='LoadAnnotations', reduce_zero_label=True),

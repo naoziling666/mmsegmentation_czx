@@ -372,7 +372,7 @@ class ConvBnReLU3D(nn.Module):
         return F.relu(self.bn(self.conv(x)), inplace=True)
 
 @MODELS.register_module()
-class MSCAN_3dconv(BaseModule):
+class MSCAN_3dconv_v1(BaseModule):
     """SegNeXt Multi-Scale Convolutional Attention Network (MCSAN) backbone.
 
     This backbone is the implementation of `SegNeXt: Rethinking
@@ -437,11 +437,12 @@ class MSCAN_3dconv(BaseModule):
             x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))
         ]  # stochastic depth decay rule
         cur = 0
-        self._conv1 = ConvBnReLU3D(in_channels=1, out_channels=3, kernel_size=(3,5,5), stride=1, padding=(1,2,2))
-        self._conv2 = ConvBnReLU3D(in_channels=3, out_channels=6, kernel_size=(3,5,5), stride=1, padding=(0,2,2))
-        self._conv3 = ConvBnReLU3D(in_channels=6, out_channels=6, kernel_size=(3,5,5), stride=1, padding=(0,2,2))
-        self._conv4 = ConvBnReLU3D(in_channels=6, out_channels=3, kernel_size=(3,5,5), stride=1, padding=(0,2,2))
-        self._conv5 = ConvBnReLU3D(in_channels=3, out_channels=1, kernel_size=(3,5,5), stride=1, padding=(1,2,2))
+
+        self._conv1 = ConvBnReLU3D(in_channels=3, out_channels=16, kernel_size=(3,3,3), stride=1, padding=(1,1,1))
+        self._conv2 = ConvBnReLU3D(in_channels=16, out_channels=32, kernel_size=(3,3,3), stride=1, padding=(1,1,1))
+        self._conv3 = ConvBnReLU3D(in_channels=32, out_channels=32, kernel_size=(3,3,3), stride=1, padding=(1,1,1))
+        self._conv4 = ConvBnReLU3D(in_channels=32, out_channels=16, kernel_size=(3,3,3), stride=1, padding=(1,1,1))
+        self._conv5 = ConvBnReLU3D(in_channels=16, out_channels=3, kernel_size=(3,3,3), stride=1, padding=(1,1,1))
         for i in range(num_stages):
             if i == 0:
                 patch_embed = StemConv(in_channels, embed_dims[0], norm_cfg=norm_cfg)
@@ -493,12 +494,11 @@ class MSCAN_3dconv(BaseModule):
     def forward(self, x):
         """Forward function."""
         x_time = x.clone()
-        x_time = x_time.reshape((x.shape[0],1,9,x.shape[-1],x.shape[-2]))
+        x_time = x_time.reshape((x.shape[0],3,3,x.shape[-1],x.shape[-2]))
         x_time = self._conv5(self._conv4(self._conv3(self._conv2(self._conv1(x_time)))))
-        x_time = x_time.squeeze()
+        x_time = x_time.reshape(x.shape)
         # kernel_size 对应h,w,d
-        x_single = x[:,3:6,:,:]
-        x_fusion = x_single+x_time
+        x_fusion = x+x_time
         
         B = x_fusion.shape[0]
         outs = []

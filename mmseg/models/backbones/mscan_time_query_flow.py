@@ -6,7 +6,6 @@ import warnings
 import sys
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from mmcv.cnn import build_activation_layer, build_norm_layer
 from mmcv.cnn.bricks import DropPath
 from mmengine.model import BaseModule
@@ -362,17 +361,10 @@ class OverlapPatchEmbed(BaseModule):
         x = x.flatten(2).transpose(1, 2)
 
         return x, H, W
-class ConvBnReLU3D(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1):
-        super(ConvBnReLU3D, self).__init__()
-        self.conv = nn.Conv3d(in_channels, out_channels, kernel_size, stride=stride, padding=padding)
-        self.bn = nn.BatchNorm3d(out_channels)
 
-    def forward(self, x):
-        return F.relu(self.bn(self.conv(x)), inplace=True)
 
 @MODELS.register_module()
-class MSCAN_3dconv(BaseModule):
+class MSCAN_time_query(BaseModule):
     """SegNeXt Multi-Scale Convolutional Attention Network (MCSAN) backbone.
 
     This backbone is the implementation of `SegNeXt: Rethinking
@@ -437,11 +429,7 @@ class MSCAN_3dconv(BaseModule):
             x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))
         ]  # stochastic depth decay rule
         cur = 0
-        self._conv1 = ConvBnReLU3D(in_channels=1, out_channels=3, kernel_size=(3,5,5), stride=1, padding=(1,2,2))
-        self._conv2 = ConvBnReLU3D(in_channels=3, out_channels=6, kernel_size=(3,5,5), stride=1, padding=(0,2,2))
-        self._conv3 = ConvBnReLU3D(in_channels=6, out_channels=6, kernel_size=(3,5,5), stride=1, padding=(0,2,2))
-        self._conv4 = ConvBnReLU3D(in_channels=6, out_channels=3, kernel_size=(3,5,5), stride=1, padding=(0,2,2))
-        self._conv5 = ConvBnReLU3D(in_channels=3, out_channels=1, kernel_size=(3,5,5), stride=1, padding=(1,2,2))
+
         for i in range(num_stages):
             if i == 0:
                 patch_embed = StemConv(in_channels, embed_dims[0], norm_cfg=norm_cfg)
@@ -490,31 +478,32 @@ class MSCAN_3dconv(BaseModule):
         else:
             super().init_weights()
 
-    def forward(self, x):
-        """Forward function."""
-        x_time = x.clone()
-        x_time = x_time.reshape((x.shape[0],1,9,x.shape[-1],x.shape[-2]))
-        x_time = self._conv5(self._conv4(self._conv3(self._conv2(self._conv1(x_time)))))
-        x_time = x_time.squeeze()
-        # kernel_size 对应h,w,d
-        x_single = x[:,3:6,:,:]
-        x_fusion = x_single+x_time
-        
-        B = x_fusion.shape[0]
+    def extract_features(self, x):
+        B = x.shape[0]
         outs = []
 
         for i in range(self.num_stages):
             patch_embed = getattr(self, f'patch_embed{i + 1}')
             block = getattr(self, f'block{i + 1}')
             norm = getattr(self, f'norm{i + 1}')
-            x_fusion, H, W = patch_embed(x_fusion)
+            x, H, W = patch_embed(x)
             for blk in block:
-                x_fusion = blk(x_fusion, H, W)
-            x_fusion = norm(x_fusion)
-            x_fusion = x_fusion.reshape(B, H, W, -1).permute(0, 3, 1, 2).contiguous()
-            outs.append(x_fusion)
-
+                x = blk(x, H, W)
+            x = norm(x)
+            x = x.reshape(B, H, W, -1).permute(0, 3, 1, 2).contiguous()
+            outs.append(x)
         return outs
+
+
+    def forward(self, x):
+        """Forward function."""
+        image1 = x[:,0:3,:,:]
+        image3 = x[:,6:9,:,:]
+        features1 = self.extract_features(image1)
+        features3 = self.extract_features(image3)
+        
+
+        return [features1, features3]
 
 
 # backbone = MSCAN()

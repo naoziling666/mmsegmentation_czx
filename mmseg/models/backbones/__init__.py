@@ -24,12 +24,18 @@ from .twins import PCPVT, SVT
 from .unet import UNet
 from .vit import VisionTransformer
 from .mscan_3d_conv import MSCAN_3dconv
-
+from .mscan_3d_conv_9 import MSCAN_3dconv_9
+from .mscan_3d_conv_v1_inchannel9 import MSCAN_3dconv_v1
+from .mscan_optical_flow import MSCAN_Optical_flow
+from .mscan_optical_flow_1 import MSCAN_Optical_flow1
+from .mscan_optical_flow_2 import MSCAN_Optical_flow2
+from .mscan_time_query import MSCAN_time_query
 __all__ = [
     'ResNet', 'ResNetV1c', 'ResNetV1d', 'ResNeXt', 'HRNet', 'FastSCNN',
     'ResNeSt', 'MobileNetV2', 'UNet', 'CGNet', 'MobileNetV3',
     'VisionTransformer', 'SwinTransformer', 'MixVisionTransformer',
     'BiSeNetV1', 'BiSeNetV2', 'ICNet', 'TIMMBackbone', 'ERFNet', 'PCPVT',
     'SVT', 'STDCNet', 'STDCContextPathNet', 'BEiT', 'MAE', 'PIDNet', 'MSCAN',
-    'DDRNet', 'MSCAN_3dconv'
+    'DDRNet', 'MSCAN_3dconv','MSCAN_3dconv_9', 'MSCAN_Optical_flow', 'MSCAN_Optical_flow1',
+    'MSCAN_Optical_flow2', 'MSCAN_time_query'
 ]

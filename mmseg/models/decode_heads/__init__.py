@@ -37,6 +37,7 @@ from .assymetricdecoder import AssymetricDecoder
 from .ham_head_cascade import LightHamHead_cascade
 from .cascade_decode_focal_loss import Cascade_Decode_focal_loss
 from .cascade_decode_FSloss import Cascade_Decode_FSloss
+from .ham_head_time import LightHamHead_Time
 __all__ = [
     'FCNHead', 'PSPHead', 'ASPPHead', 'PSAHead', 'NLHead', 'GCHead', 'CCHead',
     'UPerHead', 'DepthwiseSeparableASPPHead', 'ANNHead', 'DAHead', 'OCRHead',
@@ -46,5 +47,5 @@ __all__ = [
     'SegformerHead', 'ISAHead', 'STDCHead', 'IterativeDecodeHead',
     'KernelUpdateHead', 'KernelUpdator', 'MaskFormerHead', 'Mask2FormerHead',
     'LightHamHead', 'PIDHead', 'DDRHead','AssymetricDecoder','LightHamHead_cascade',
-    'Cascade_Decode_focal_loss','Cascade_Decode_FSloss'
+    'Cascade_Decode_focal_loss','Cascade_Decode_FSloss', 'LightHamHead_Time'
 ]

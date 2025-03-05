@@ -8,7 +8,7 @@ from mmcv.ops import sigmoid_focal_loss as _sigmoid_focal_loss
 from mmseg.registry import MODELS
 from .utils import weight_reduce_loss
 
-
+# iteration=0
 # This method is used when cuda is not available
 def py_sigmoid_focal_loss(pred,
                           target,
@@ -102,6 +102,8 @@ def sigmoid_focal_loss(pred,
     """
     # Function.apply does not accept keyword arguments, so the decorator
     # "weighted_loss" is not applicable
+    global iteration
+    iteration += 1 
     final_weight = torch.ones(1, pred.size(1)).type_as(pred)
     if isinstance(alpha, list):
         # _sigmoid_focal_loss doesn't accept alpha of list type. Therefore, if
@@ -129,7 +131,21 @@ def sigmoid_focal_loss(pred,
         final_weight = final_weight * pred.new_tensor(class_weight)
     if valid_mask is not None:
         final_weight = final_weight * valid_mask
+    # loss_write = loss * final_weight # 忽略的类别自然设置的weight=0
+    # loss_write = loss_write.mean(dim=1).contiguous()
+    # if iteration%100 == 0 and str(pred.device)=='cuda:0':
+    #     class_0_loss = loss_write[target==0].sum()
+    #     class_1_loss = loss_write[target==1].sum()
+    #     class_2_loss = loss_write[target==2].sum()
+    #     class_3_loss = loss_write[target==3].sum()
+    #     loss_each_class = [class_0_loss, class_1_loss, class_2_loss, class_3_loss]
+    #     total_loss = class_0_loss+class_1_loss+class_2_loss+class_3_loss
+    #     account_loss = [item / total_loss for item in loss_each_class]
+    #     with open("/root/autodl-pub/CZX/mmsegmentation_czx/loss_focal_1.txt", 'a+') as f:
+    #         f.write('0:{:.3f}    1:{:.3f}    2:{:.3f}    3:{:.3f}\n'.format(account_loss[0], account_loss[1], account_loss[2], account_loss[3]))
     loss = weight_reduce_loss(loss, final_weight, reduction, avg_factor)
+
+
     return loss
 
 

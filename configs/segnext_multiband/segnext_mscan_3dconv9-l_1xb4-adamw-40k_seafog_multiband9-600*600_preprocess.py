@@ -7,8 +7,8 @@ _base_ = [
 ham_norm_cfg = dict(type='GN', num_groups=32, requires_grad=True)
 data_preprocessor = dict(
     type='SegDataPreProcessor',
-    # mean=[74.209, 86.325, 57.107, 74.369, 86.603, 57.575, 74.561, 86.925, 58.081],
-    # std=[31.693, 38.081, 29.844, 31.743, 38.191, 30.117, 31.791, 38.303, 30.394],
+    mean=[74.209, 86.325, 57.107, 74.369, 86.603, 57.575, 74.561, 86.925, 58.081],
+    std=[31.693, 38.081, 29.844, 31.743, 38.191, 30.117, 31.791, 38.303, 30.394],
     bgr_to_rgb=False,
     pad_val=0,
     seg_pad_val=255,
@@ -19,9 +19,9 @@ model = dict(
     data_preprocessor=data_preprocessor,
     pretrained=None,
     backbone=dict(
-        type='MSCAN_3dconv',
+        type='MSCAN_3dconv_9',
         # init_cfg=dict(type='Pretrained', checkpoint=checkpoint_file),
-        in_channels=3,
+        in_channels=9,
         embed_dims=[64, 128, 320, 512],
         mlp_ratios=[8, 8, 4, 4],
         drop_rate=0.0,

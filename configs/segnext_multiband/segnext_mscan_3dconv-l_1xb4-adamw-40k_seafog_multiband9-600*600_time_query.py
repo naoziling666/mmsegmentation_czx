@@ -1,5 +1,5 @@
 _base_ = [
-    '../_base_/default_runtime.py', '../_base_/schedules/schedule_40k.py',
+    '../_base_/default_runtime.py', '../_base_/schedules/schedule_80k.py',
     '../_base_/datasets/seafog_multiband.py'
 ]
 # model settings
@@ -19,7 +19,7 @@ model = dict(
     data_preprocessor=data_preprocessor,
     pretrained=None,
     backbone=dict(
-        type='MSCAN_3dconv',
+        type='MSCAN_time_query',
         # init_cfg=dict(type='Pretrained', checkpoint=checkpoint_file),
         in_channels=3,
         embed_dims=[64, 128, 320, 512],
@@ -31,8 +31,9 @@ model = dict(
         attention_kernel_paddings=[2, [0, 3], [0, 5], [0, 10]],
         act_cfg=dict(type='GELU'),
         norm_cfg=dict(type='BN', requires_grad=True)),
+    neck=dict(type='Time_feat_query'),
     decode_head=dict(
-        type='LightHamHead',
+        type='LightHamHead_Time',
         in_channels=[128, 320, 512],
         in_index=[1, 2, 3],
         channels=1024,
@@ -55,30 +56,34 @@ model = dict(
     test_cfg=dict(mode='whole'))
 
 # dataset settings
-# train_dataloader = dict(batch_size=16)
+train_dataloader = dict(batch_size=3)
 
 # optimizer
-optim_wrapper = dict(
-    _delete_=True,
-    type='OptimWrapper',
-    optimizer=dict(
-        type='AdamW', lr=0.0006, betas=(0.9, 0.999), weight_decay=0.01),
-    paramwise_cfg=dict(
-        custom_keys={
-            'pos_block': dict(decay_mult=0.),
-            'norm': dict(decay_mult=0.),
-            'head': dict(lr_mult=10.)
-        }))
+# optim_wrapper = dict(
+#     _delete_=True,
+#     type='OptimWrapper',
+#     optimizer=dict(
+#         type='AdamW', lr=0.0006, betas=(0.9, 0.999), weight_decay=0.01),
+#     paramwise_cfg=dict(
+#         custom_keys={
+#             'pos_block': dict(decay_mult=0.),
+#             'norm': dict(decay_mult=0.),
+#             'head': dict(lr_mult=10.)
+#         }))
 
-param_scheduler = [
-    dict(
-        type='LinearLR', start_factor=1e-6, by_epoch=False, begin=0, end=1500),
-    dict(
-        type='PolyLR',
-        power=1.0,
-        begin=1500,
-        end=40000,
-        eta_min=0.0,
-        by_epoch=False,
-    )
-]
+# param_scheduler = [
+#     dict(
+#         type='LinearLR', start_factor=1e-6, by_epoch=False, begin=0, end=1500),
+#     dict(
+#         type='PolyLR',
+#         power=1.0,
+#         begin=1500,
+#         end=40000,
+#         eta_min=0.0,
+#         by_epoch=False,
+#     )
+# ]
+
+model_wrapper_cfg = dict(
+                find_unused_parameters=True
+            )

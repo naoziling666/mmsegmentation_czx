@@ -2,7 +2,7 @@ import cv2 as cv
 import os
 import numpy as np
 
-root = "/root/autodl-pub/CZX/mmsegmentation_czx/data/seafog_data/seafog_600/crop_mask/train"
+root = "/root/autodl-fs/mmsegmentation_czx/data/seafog_data/seafog_multiband_600/label/train"
 images_list = os.listdir(root)
 weights = []
 index = 0

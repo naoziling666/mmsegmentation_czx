@@ -19,9 +19,9 @@ model = dict(
     data_preprocessor=data_preprocessor,
     pretrained=None,
     backbone=dict(
-        type='MSCAN_3dconv',
+        type='MSCAN_3dconv_v1',
         # init_cfg=dict(type='Pretrained', checkpoint=checkpoint_file),
-        in_channels=3,
+        in_channels=9,
         embed_dims=[64, 128, 320, 512],
         mlp_ratios=[8, 8, 4, 4],
         drop_rate=0.0,
